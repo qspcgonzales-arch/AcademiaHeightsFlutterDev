@@ -1,6 +1,11 @@
-/// Named routes for the app. Always reference these constants instead of
-/// writing route-name string literals at call sites.
-abstract final class Routes {
+/// Names for every screen. Use `Routes.title` etc. instead of typing the
+/// path strings by hand, so a typo is caught by the editor.
+///
+/// This class only holds constants; the private `Routes._()` constructor
+/// stops anyone creating an instance of it.
+class Routes {
+  Routes._();
+
   static const String title = '/';
   static const String mainMenu = '/menu';
   static const String newGame = '/new-game';

@@ -5,7 +5,7 @@ import '../routes.dart';
 import '../state/game_state.dart';
 import '../theme/app_theme.dart';
 
-/// New game: enter a player name (max 16 characters) and start.
+/// Asks for a player name (up to 16 characters) and starts a new game.
 class NewGameScreen extends StatefulWidget {
   const NewGameScreen({super.key});
 
@@ -14,18 +14,22 @@ class NewGameScreen extends StatefulWidget {
 }
 
 class _NewGameScreenState extends State<NewGameScreen> {
-  final TextEditingController _name = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void dispose() {
-    _name.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
-  void _start() {
-    final name = _name.text.trim();
-    if (name.isEmpty) return;
-    context.read<GameState>().startNewGame(name);
+  bool get _nameIsEmpty => _nameController.text.trim().isEmpty;
+
+  void _startGame() {
+    if (_nameIsEmpty) return;
+
+    context.read<GameState>().startNewGame(_nameController.text);
+
+    // Open gameplay; keep the main menu underneath so Back returns there.
     Navigator.of(context).pushNamedAndRemoveUntil(
       Routes.gameplay,
       ModalRoute.withName(Routes.mainMenu),
@@ -42,7 +46,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
           child: Column(
             children: [
               TextField(
-                controller: _name,
+                controller: _nameController,
                 autofocus: true,
                 maxLength: AppTheme.maxPlayerNameLength,
                 textInputAction: TextInputAction.done,
@@ -50,12 +54,13 @@ class _NewGameScreenState extends State<NewGameScreen> {
                   labelText: 'Player name',
                   hintText: 'Up to 16 characters',
                 ),
-                onChanged: (_) => setState(() {}),
-                onSubmitted: (_) => _start(),
+                // Rebuild so the Start button enables/disables as they type.
+                onChanged: (text) => setState(() {}),
+                onSubmitted: (text) => _startGame(),
               ),
               const SizedBox(height: AppTheme.gapM),
               FilledButton(
-                onPressed: _name.text.trim().isEmpty ? null : _start,
+                onPressed: _nameIsEmpty ? null : _startGame,
                 child: const Text('Start Game'),
               ),
             ],

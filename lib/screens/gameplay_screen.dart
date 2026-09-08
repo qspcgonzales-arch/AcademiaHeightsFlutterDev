@@ -9,8 +9,9 @@ import '../routes.dart';
 import '../state/game_state.dart';
 import '../theme/app_theme.dart';
 
-/// Hosts the Flame game plus the HUD. HUD and overlays are Flutter widgets
-/// layered over `GameWidget` in a `Stack` — the two loops stay separate.
+/// Hosts the Flame game and the on-screen HUD. The game is drawn by
+/// `GameWidget`; the HUD (stats, menu, interact button) and the dialogue
+/// pop-ups are ordinary Flutter widgets stacked on top.
 class GameplayScreen extends StatefulWidget {
   const GameplayScreen({super.key});
 
@@ -19,32 +20,40 @@ class GameplayScreen extends StatefulWidget {
 }
 
 class _GameplayScreenState extends State<GameplayScreen> {
+  // Built once, the first time the screen is shown.
   AcademiaHeightsGame? _game;
 
-  AcademiaHeightsGame _buildGame(GameState state) {
-    return AcademiaHeightsGame(
+  AcademiaHeightsGame _gameFor(GameState state) {
+    final AcademiaHeightsGame? existing = _game;
+    if (existing != null) return existing;
+
+    final AcademiaHeightsGame created = AcademiaHeightsGame(
       courseId: state.currentCourse.id,
       instructorName: state.currentCourse.instructorName,
     );
+    _game = created;
+    return created;
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<GameState>();
+    final GameState state = context.watch<GameState>();
     final profile = state.profile;
+
+    // No run in progress (e.g. after "quit") — show a spinner while the
+    // navigator returns to the menu.
     if (profile == null) {
-      // No active run — bounce back to the menu.
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final game = _game ??= _buildGame(state);
+    final AcademiaHeightsGame game = _gameFor(state);
 
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(child: GameWidget(game: game)),
 
-          // Top-left: name / level / EXP.
+          // Top-left: name, level, EXP.
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.gapM),
@@ -65,8 +74,8 @@ class _GameplayScreenState extends State<GameplayScreen> {
               alignment: Alignment.topRight,
               child: PopupMenuButton<String>(
                 icon: const Icon(Icons.menu),
-                onSelected: (value) => Navigator.of(context).pushNamed(value),
-                itemBuilder: (_) => const [
+                onSelected: (route) => Navigator.of(context).pushNamed(route),
+                itemBuilder: (context) => const [
                   PopupMenuItem(
                     value: Routes.progressTracker,
                     child: Text('Academic Progress'),
@@ -84,20 +93,25 @@ class _GameplayScreenState extends State<GameplayScreen> {
             ),
           ),
 
-          // Bottom-right: interact button, shown only when something is near.
+          // Bottom-right: interact button, only visible when something is
+          // in range.
           SafeArea(
             child: Align(
               alignment: Alignment.bottomRight,
               child: Padding(
                 padding: const EdgeInsets.all(AppTheme.gapL),
-                child: ValueListenableBuilder<Interactable?>(
+                child: ValueListenableBuilder<NearbyTarget?>(
                   valueListenable: game.nearby,
-                  builder: (context, target, _) {
+                  builder: (context, target, child) {
                     if (target == null) return const SizedBox.shrink();
-                    final label = switch (target) {
-                      PickupTarget() => 'Pick up',
-                      TalkTarget(:final npc) => 'Talk to ${npc.displayName}',
-                    };
+
+                    String label;
+                    if (target.isNpc) {
+                      label = 'Talk to ${target.npc!.displayName}';
+                    } else {
+                      label = 'Pick up';
+                    }
+
                     return FilledButton.icon(
                       onPressed: () => _onInteract(game, state),
                       icon: const Icon(Icons.touch_app),
@@ -117,16 +131,20 @@ class _GameplayScreenState extends State<GameplayScreen> {
     AcademiaHeightsGame game,
     GameState state,
   ) async {
-    final npc = game.interact();
-    if (npc == null) return; // was a pickup
+    final NpcComponent? npc = game.interactWithNearby();
+
+    // It was a book pickup — nothing more to do.
+    if (npc == null) return;
+
     if (!npc.isInstructor) {
-      await _showDialogue(npc.displayName, 'Good luck with your studies!');
+      await _showLine(npc.displayName, 'Good luck with your studies!');
       return;
     }
+
     await _showInstructorFlow(state);
   }
 
-  Future<void> _showDialogue(String speaker, String line) {
+  Future<void> _showLine(String speaker, String line) {
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -143,28 +161,33 @@ class _GameplayScreenState extends State<GameplayScreen> {
   }
 
   Future<void> _showInstructorFlow(GameState state) async {
-    final stage = _nextStage(state);
+    final ExamStage? stage = _nextStage(state);
+
     if (stage == null) {
-      await _showDialogue(
+      await _showLine(
         state.currentCourse.instructorName,
-        'You have passed every exam for this course. Well done!',
+        'You have passed every exam. Well done!',
       );
       return;
     }
 
     if (!state.isStageUnlocked(stage)) {
-      await _showDialogue(
+      final ExamStage? needsFirst = prerequisiteOf(stage);
+      final String needsFirstLabel =
+          needsFirst == null ? '' : examStageLabel(needsFirst);
+      await _showLine(
         state.currentCourse.instructorName,
-        'You must pass the ${stage.prerequisite?.label} first.',
+        'You must pass the $needsFirstLabel exam first.',
       );
       return;
     }
 
     if (!mounted) return;
-    final takeNow = await showDialog<bool>(
+
+    final bool? takeNow = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('${stage.label} Exam'),
+        title: Text('${examStageLabel(stage)} Exam'),
         content: const Text('Take the exam now, or review first?'),
         actions: [
           TextButton(
@@ -184,8 +207,10 @@ class _GameplayScreenState extends State<GameplayScreen> {
     }
   }
 
+  /// The first exam stage the player has not passed yet, or null if they are
+  /// all done.
   ExamStage? _nextStage(GameState state) {
-    for (final stage in ExamStage.values) {
+    for (final ExamStage stage in ExamStage.values) {
       if (!state.isStagePassed(stage)) return stage;
     }
     return null;
@@ -205,7 +230,9 @@ class _HudStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final intoLevel = exp % 100;
+    // EXP earned toward the next level (0-99).
+    final int expIntoLevel = exp % 100;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppTheme.gapM,
@@ -223,7 +250,7 @@ class _HudStats extends StatelessWidget {
           Text('Level $level'),
           SizedBox(
             width: 120,
-            child: LinearProgressIndicator(value: intoLevel / 100),
+            child: LinearProgressIndicator(value: expIntoLevel / 100),
           ),
         ],
       ),

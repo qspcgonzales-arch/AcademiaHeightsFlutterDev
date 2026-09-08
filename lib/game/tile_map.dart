@@ -3,47 +3,47 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Renders a tile grid and answers collision queries.
+/// Draws the tile grid and answers "is this spot blocked?" questions.
 ///
-/// The grid is `List<List<int>>`, row-major. `0` is walkable; any non-zero
-/// value is blocked (later: mapped to a specific tile sprite). Loops iterate
-/// rows/columns — this is the Module 4 "arrays + loops" piece.
+/// The grid is a list of rows, and each row is a list of numbers
+/// (`List<List<int>>`). `0` means the player can walk there; any other
+/// number means it's blocked (a wall, a tree, etc). This is the Module 4
+/// "arrays + loops" part of the project.
 class TileMapComponent extends PositionComponent {
   TileMapComponent({required this.grid})
-      : assert(grid.isNotEmpty && grid.first.isNotEmpty, 'grid must be non-empty'),
-        super(
-          size: Vector2(
-            grid.first.length * AppTheme.tileSize,
-            grid.length * AppTheme.tileSize,
-          ),
-        );
+      : super(size: _pixelSize(grid));
 
   final List<List<int>> grid;
 
   int get rows => grid.length;
-  int get columns => grid.first.length;
-  double get tile => AppTheme.tileSize;
+  int get columns => grid[0].length;
+  double get tileSize => AppTheme.tileSize;
 
-  bool isBlockedAtCell(int row, int column) {
-    if (row < 0 || column < 0 || row >= rows || column >= columns) return true;
+  /// Total map size in pixels, from the number of rows and columns.
+  static Vector2 _pixelSize(List<List<int>> grid) {
+    final int rows = grid.length;
+    final int columns = grid[0].length;
+    return Vector2(columns * AppTheme.tileSize, rows * AppTheme.tileSize);
+  }
+
+  /// True if the cell is a wall, or outside the map.
+  bool isBlockedCell(int row, int column) {
+    if (row < 0 || row >= rows) return true;
+    if (column < 0 || column >= columns) return true;
     return grid[row][column] != 0;
   }
 
-  bool isBlockedAtPoint(Vector2 worldPoint) {
-    final column = (worldPoint.x / tile).floor();
-    final row = (worldPoint.y / tile).floor();
-    return isBlockedAtCell(row, column);
-  }
-
-  /// True if an axis-aligned box (in world space) overlaps any blocked tile.
+  /// True if a box (given by its top-left corner and size, in pixels)
+  /// overlaps any blocked cell.
   bool collidesWithBox(Vector2 topLeft, Vector2 boxSize) {
-    final firstColumn = (topLeft.x / tile).floor();
-    final lastColumn = ((topLeft.x + boxSize.x) / tile).floor();
-    final firstRow = (topLeft.y / tile).floor();
-    final lastRow = ((topLeft.y + boxSize.y) / tile).floor();
-    for (var row = firstRow; row <= lastRow; row++) {
-      for (var column = firstColumn; column <= lastColumn; column++) {
-        if (isBlockedAtCell(row, column)) return true;
+    final int firstColumn = (topLeft.x / tileSize).floor();
+    final int lastColumn = ((topLeft.x + boxSize.x) / tileSize).floor();
+    final int firstRow = (topLeft.y / tileSize).floor();
+    final int lastRow = ((topLeft.y + boxSize.y) / tileSize).floor();
+
+    for (int row = firstRow; row <= lastRow; row++) {
+      for (int column = firstColumn; column <= lastColumn; column++) {
+        if (isBlockedCell(row, column)) return true;
       }
     }
     return false;
@@ -51,42 +51,64 @@ class TileMapComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final walkable = Paint()..color = AppTheme.chalkboard.withValues(alpha: 0.35);
-    final blocked = Paint()..color = AppTheme.ink;
-    final gridLine = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke;
+    final Paint walkablePaint = Paint();
+    walkablePaint.color = AppTheme.chalkboard.withValues(alpha: 0.35);
 
-    for (var row = 0; row < rows; row++) {
-      for (var column = 0; column < columns; column++) {
-        final rect = Rect.fromLTWH(
-          column * tile,
-          row * tile,
-          tile,
-          tile,
+    final Paint blockedPaint = Paint();
+    blockedPaint.color = AppTheme.ink;
+
+    final Paint gridLinePaint = Paint();
+    gridLinePaint.color = Colors.white.withValues(alpha: 0.05);
+    gridLinePaint.style = PaintingStyle.stroke;
+
+    for (int row = 0; row < rows; row++) {
+      for (int column = 0; column < columns; column++) {
+        final Rect cell = Rect.fromLTWH(
+          column * tileSize,
+          row * tileSize,
+          tileSize,
+          tileSize,
         );
-        canvas.drawRect(rect, grid[row][column] == 0 ? walkable : blocked);
-        canvas.drawRect(rect, gridLine);
+
+        if (grid[row][column] == 0) {
+          canvas.drawRect(cell, walkablePaint);
+        } else {
+          canvas.drawRect(cell, blockedPaint);
+        }
+        canvas.drawRect(cell, gridLinePaint);
       }
     }
   }
 }
 
-/// A small hand-authored placeholder map (border wall + a couple of blocks).
-/// Real maps come from Tiled in M1.
+/// A small hand-made placeholder map: a wall around the edge plus two inner
+/// walls. Real maps come from Tiled in milestone M1.
 List<List<int>> demoGrid() {
-  const rows = 14;
-  const columns = 20;
-  return List.generate(rows, (row) {
-    return List.generate(columns, (column) {
-      final onBorder =
-          row == 0 || column == 0 || row == rows - 1 || column == columns - 1;
-      if (onBorder) return 1;
-      if ((row == 5 && column >= 6 && column <= 12) ||
-          (column == 14 && row >= 3 && row <= 9)) {
-        return 1;
-      }
-      return 0;
-    });
-  });
+  const int rows = 14;
+  const int columns = 20;
+
+  final List<List<int>> grid = [];
+  for (int row = 0; row < rows; row++) {
+    final List<int> rowCells = [];
+    for (int column = 0; column < columns; column++) {
+      rowCells.add(_demoCell(row, column, rows, columns));
+    }
+    grid.add(rowCells);
+  }
+  return grid;
+}
+
+/// 1 = wall, 0 = walkable, for the demo map.
+int _demoCell(int row, int column, int rows, int columns) {
+  final bool onEdge = row == 0 ||
+      column == 0 ||
+      row == rows - 1 ||
+      column == columns - 1;
+  if (onEdge) return 1;
+
+  final bool onHorizontalWall = row == 5 && column >= 6 && column <= 12;
+  final bool onVerticalWall = column == 14 && row >= 3 && row <= 9;
+  if (onHorizontalWall || onVerticalWall) return 1;
+
+  return 0;
 }

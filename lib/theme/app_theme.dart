@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
-/// Central place for colors, spacing, and text styles so screens stay
-/// visually consistent. Swap [_fontFamily] once a pixel-art .ttf is added to
-/// `assets/fonts/` and registered in `pubspec.yaml`.
-abstract final class AppTheme {
+/// One place for the colours, spacing sizes, and shared numbers used across
+/// the app, so screens stay consistent. Holds constants only — the private
+/// `AppTheme._()` constructor stops anyone making an instance.
+///
+/// Set [_fontFamily] once a pixel-art .ttf is added to `assets/fonts/` and
+/// listed in `pubspec.yaml`.
+class AppTheme {
+  AppTheme._();
+
   static const String? _fontFamily = null; // e.g. 'PressStart2P'
 
   // Palette — school / chalkboard feel.
@@ -28,28 +33,26 @@ abstract final class AppTheme {
   /// Exam pass mark as a fraction of questions correct.
   static const double examPassMark = 0.6;
 
+  /// The app's dark theme.
   static ThemeData dark() {
-    final base = ThemeData(
-      useMaterial3: true,
+    final ColorScheme colors = ColorScheme.fromSeed(
+      seedColor: ivy,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: ivy,
-        brightness: Brightness.dark,
-      ).copyWith(surface: ink),
-      scaffoldBackgroundColor: ink,
-      fontFamily: _fontFamily,
+    ).copyWith(surface: ink);
+
+    final ButtonStyle bigButton = FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(52),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
 
-    return base.copyWith(
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: colors,
+      scaffoldBackgroundColor: ink,
+      fontFamily: _fontFamily,
       appBarTheme: const AppBarTheme(centerTitle: true),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(52),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
+      filledButtonTheme: FilledButtonThemeData(style: bigButton),
     );
   }
 }

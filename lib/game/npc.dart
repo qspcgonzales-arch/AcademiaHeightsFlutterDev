@@ -25,10 +25,13 @@ class NpcComponent extends PositionComponent {
   /// How close (world pixels) the player must be to interact.
   double interactRadius = AppTheme.tileSize * 1.4;
 
+  // "..color =" sets the colour on the new Paint and keeps the Paint.
   final Paint _paint = Paint()..color = AppTheme.brass;
 
-  bool isPlayerInRange(Vector2 playerPosition) =>
-      playerPosition.distanceTo(position) <= interactRadius;
+  bool isPlayerInRange(Vector2 playerPosition) {
+    final double distance = playerPosition.distanceTo(position);
+    return distance <= interactRadius;
+  }
 
   @override
   void render(Canvas canvas) {

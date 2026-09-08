@@ -20,21 +20,29 @@ class CollectibleBook extends PositionComponent {
 
   final String id;
   final String topic;
+
+  /// The game gives us a function to call when this book is picked up.
   final void Function(CollectibleBook book) onCollected;
 
+  /// How close (in pixels) the player must be to pick it up.
   double pickupRadius = AppTheme.tileSize;
+
   bool _collected = false;
 
+  // "..color =" sets the colour on the new Paint and keeps the Paint.
   final Paint _paint = Paint()..color = AppTheme.ivy;
 
-  bool isPlayerInRange(Vector2 playerPosition) =>
-      !_collected && playerPosition.distanceTo(position) <= pickupRadius;
+  bool isPlayerInRange(Vector2 playerPosition) {
+    if (_collected) return false;
+    final double distance = playerPosition.distanceTo(position);
+    return distance <= pickupRadius;
+  }
 
   void collect() {
     if (_collected) return;
     _collected = true;
     onCollected(this);
-    removeFromParent();
+    removeFromParent(); // take the book off the map
   }
 
   @override

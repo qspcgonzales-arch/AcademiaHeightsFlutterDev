@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsController>();
+    final SettingsController settings = context.watch<SettingsController>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings — Audio')),
@@ -23,20 +23,20 @@ class SettingsScreen extends StatelessWidget {
             SwitchListTile(
               title: const Text('Mute all audio'),
               value: settings.muted,
-              onChanged: settings.setMuted,
+              onChanged: (isMuted) => settings.setMuted(isMuted),
             ),
             const Divider(),
             _VolumeSlider(
               label: 'Music volume',
               value: settings.musicVolume,
               enabled: !settings.muted,
-              onChanged: settings.setMusicVolume,
+              onChanged: (newValue) => settings.setMusicVolume(newValue),
             ),
             _VolumeSlider(
               label: 'Sound effects volume',
               value: settings.sfxVolume,
               enabled: !settings.muted,
-              onChanged: settings.setSfxVolume,
+              onChanged: (newValue) => settings.setSfxVolume(newValue),
             ),
             const SizedBox(height: AppTheme.gapM),
             OutlinedButton.icon(

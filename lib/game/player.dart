@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'tile_map.dart';
 
-/// The player character. Movement is driven by a [JoystickComponent] and
-/// blocked by non-walkable tiles in [TileMapComponent].
+/// The player character. The virtual joystick moves it, and walls in the
+/// [TileMapComponent] stop it.
 ///
-/// This is deliberately a plain rectangle for the scaffold; swap in a
-/// `SpriteAnimationComponent` in M1 once art is wired.
+/// It's just a rounded rectangle for now; a real animated sprite comes in
+/// milestone M1.
 class PlayerComponent extends PositionComponent {
   PlayerComponent({
     required this.joystick,
@@ -23,27 +23,37 @@ class PlayerComponent extends PositionComponent {
   final JoystickComponent joystick;
   final TileMapComponent map;
 
-  double speed = 140; // logical pixels/second
+  /// Movement speed in pixels per second.
+  double speed = 140;
 
+  // "..color =" sets the colour on the new Paint and keeps the Paint.
   final Paint _paint = Paint()..color = AppTheme.parchment;
 
   @override
   void update(double dt) {
     super.update(dt);
+
+    // Nothing to do while the joystick is centred.
     if (joystick.direction == JoystickDirection.idle) return;
 
-    final delta = joystick.relativeDelta * speed * dt;
-    _moveAxis(Vector2(delta.x, 0));
-    _moveAxis(Vector2(0, delta.y));
+    // How far to move this frame: direction * speed * time since last frame.
+    final Vector2 move = joystick.relativeDelta * speed * dt;
+
+    // Move one axis at a time so hitting a wall on one axis doesn't stop the
+    // other.
+    _tryMove(Vector2(move.x, 0));
+    _tryMove(Vector2(0, move.y));
   }
 
-  /// Move along one axis, cancelling it if the new box would hit a wall.
-  void _moveAxis(Vector2 step) {
-    if (step.isZero()) return;
-    final next = position + step;
-    final topLeft = next - size / 2;
-    if (map.collidesWithBox(topLeft, size)) return;
-    position = next;
+  /// Moves by [step] unless that would put the player inside a wall.
+  void _tryMove(Vector2 step) {
+    if (step.x == 0 && step.y == 0) return;
+
+    final Vector2 nextPosition = position + step;
+    final Vector2 nextTopLeft = nextPosition - (size / 2);
+    if (map.collidesWithBox(nextTopLeft, size)) return;
+
+    position = nextPosition;
   }
 
   @override

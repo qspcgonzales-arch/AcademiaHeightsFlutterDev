@@ -5,8 +5,8 @@ import '../routes.dart';
 import '../state/settings_controller.dart';
 import '../theme/app_theme.dart';
 
-/// Title screen: game name, tagline, a loading bar, and a mute toggle.
-/// Advances to the main menu when the bar fills.
+/// The opening screen: game name, tagline, a loading bar, and a mute button.
+/// When the loading bar fills, it moves on to the main menu.
 class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
 
@@ -16,30 +16,38 @@ class TitleScreen extends StatefulWidget {
 
 class _TitleScreenState extends State<TitleScreen>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _loader = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1800),
-  )..forward();
+  // Drives the loading bar. "late" = created in initState, before first use.
+  late final AnimationController _loadingBar;
 
   @override
   void initState() {
     super.initState();
-    _loader.addStatusListener((status) {
+
+    _loadingBar = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    // Go to the main menu once the bar has finished filling.
+    _loadingBar.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         Navigator.of(context).pushReplacementNamed(Routes.mainMenu);
       }
     });
+
+    _loadingBar.forward();
   }
 
   @override
   void dispose() {
-    _loader.dispose();
+    _loadingBar.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsController>();
+    final SettingsController settings = context.watch<SettingsController>();
+
     return Scaffold(
       body: Stack(
         children: [
@@ -58,10 +66,12 @@ class _TitleScreenState extends State<TitleScreen>
                   const Text('Study. Explore. Graduate.'),
                   const SizedBox(height: AppTheme.gapXl),
                   AnimatedBuilder(
-                    animation: _loader,
-                    builder: (context, _) => LinearProgressIndicator(
-                      value: _loader.value,
-                    ),
+                    animation: _loadingBar,
+                    builder: (context, child) {
+                      return LinearProgressIndicator(
+                        value: _loadingBar.value,
+                      );
+                    },
                   ),
                 ],
               ),
@@ -71,7 +81,9 @@ class _TitleScreenState extends State<TitleScreen>
             child: Align(
               alignment: Alignment.topRight,
               child: IconButton(
-                icon: Icon(settings.muted ? Icons.volume_off : Icons.volume_up),
+                icon: Icon(
+                  settings.muted ? Icons.volume_off : Icons.volume_up,
+                ),
                 tooltip: settings.muted ? 'Unmute' : 'Mute',
                 onPressed: () => settings.setMuted(!settings.muted),
               ),

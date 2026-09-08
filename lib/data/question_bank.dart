@@ -3,18 +3,20 @@ import '../models/question.dart';
 import 'courses.dart';
 import 'questions_data.dart';
 
-/// The exam for a stage. One shared question bank per stage — Prelim (10),
-/// Midterm (15), Finals (20) — covering every module, difficulty rising
-/// toward Finals. The full text lives in `questions_data.dart` and
-/// `docs/quiz_bank.md`.
-List<Question> questionsFor(ExamStage stage) => switch (stage) {
-      ExamStage.prelim => prelimQuestions,
-      ExamStage.midterm => midtermQuestions,
-      ExamStage.finals => finalsQuestions,
-    };
+/// The list of questions for one exam stage. One shared bank per stage —
+/// Prelim (10), Midterm (15), Finals (20) — each covering every module. The
+/// question text lives in `questions_data.dart` and `docs/quiz_bank.md`.
+List<Question> questionsFor(ExamStage stage) {
+  if (stage == ExamStage.prelim) return prelimQuestions;
+  if (stage == ExamStage.midterm) return midtermQuestions;
+  return finalsQuestions;
+}
 
-Exam examFor(ExamStage stage) => Exam(
-      courseId: trackCourseId,
-      stage: stage,
-      questions: questionsFor(stage),
-    );
+/// Builds the [Exam] for a stage.
+Exam examFor(ExamStage stage) {
+  return Exam(
+    courseId: trackCourseId,
+    stage: stage,
+    questions: questionsFor(stage),
+  );
+}

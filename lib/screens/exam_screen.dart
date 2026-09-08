@@ -11,8 +11,8 @@ import '../routes.dart';
 import '../state/game_state.dart';
 import '../theme/app_theme.dart';
 
-/// One multiple-choice question at a time, with a per-question countdown.
-/// Expects an [ExamStage] as the route argument.
+/// Shows the exam one multiple-choice question at a time with a countdown
+/// timer per question. The route argument is the [ExamStage] to run.
 class ExamScreen extends StatefulWidget {
   const ExamScreen({super.key});
 
@@ -21,76 +21,102 @@ class ExamScreen extends StatefulWidget {
 }
 
 class _ExamScreenState extends State<ExamScreen> {
-  late final GameState _game;
-  late final Exam _exam;
-  late final int _perQuestionSeconds;
+  // "late" here means: not ready yet in the constructor, but set once in
+  // didChangeDependencies() before anything reads them.
+  late GameState _game;
+  late Exam _exam;
+  late int _secondsPerQuestion;
 
-  int _index = 0;
-  int _correct = 0;
+  int _questionIndex = 0;
+  int _correctCount = 0;
   int _secondsLeft = 0;
-  int? _selected;
+  int? _selectedChoice; // null until the player taps an option
   Timer? _timer;
-  bool _started = false;
+  bool _setUp = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_started) return;
-    _started = true;
+    // Only set things up once.
+    if (_setUp) return;
+    _setUp = true;
 
     _game = context.read<GameState>();
-    final stage = ModalRoute.of(context)!.settings.arguments as ExamStage;
-    _exam = _shuffleAnswers(examFor(stage));
-    _perQuestionSeconds = stage.secondsPerQuestion;
-    _beginQuestion();
+
+    final ExamStage stage =
+        ModalRoute.of(context)!.settings.arguments as ExamStage;
+    _exam = _withShuffledAnswers(examFor(stage));
+    _secondsPerQuestion = secondsPerQuestionFor(stage);
+
+    _startQuestionTimer();
   }
 
-  /// Reorders each question's four choices so the correct answer isn't always
-  /// in the same position. Question order is left as authored.
-  Exam _shuffleAnswers(Exam exam) {
-    final random = Random();
+  /// Makes a copy of the exam with every question's four choices put in a
+  /// random order. Question order stays as written.
+  Exam _withShuffledAnswers(Exam exam) {
+    final Random random = Random();
+
+    final List<Question> shuffled = [];
+    for (final Question question in exam.questions) {
+      shuffled.add(question.shuffledChoices(random));
+    }
+
     return Exam(
       courseId: exam.courseId,
       stage: exam.stage,
-      questions: [
-        for (final question in exam.questions)
-          question.shuffledChoices(random),
-      ],
+      questions: shuffled,
     );
   }
 
-  void _beginQuestion() {
-    _selected = null;
-    _secondsLeft = _perQuestionSeconds;
+  void _startQuestionTimer() {
+    _selectedChoice = null;
+    _secondsLeft = _secondsPerQuestion;
+
+    // "?." means "only if _timer isn't null".
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
-      setState(() => _secondsLeft--);
-      if (_secondsLeft <= 0) _lockIn();
+      setState(() {
+        _secondsLeft = _secondsLeft - 1;
+      });
+      if (_secondsLeft <= 0) {
+        _submitAnswer();
+      }
     });
   }
 
-  void _lockIn() {
+  /// Grades the current answer and moves on (or finishes the exam).
+  void _submitAnswer() {
     _timer?.cancel();
-    final question = _exam.questions[_index];
-    if (_selected != null && question.isCorrect(_selected!)) _correct++;
 
-    if (_index + 1 >= _exam.questions.length) {
-      _finish();
+    final Question question = _exam.questions[_questionIndex];
+    if (_selectedChoice != null) {
+      if (question.isCorrect(_selectedChoice!)) {
+        _correctCount = _correctCount + 1;
+      }
+    }
+
+    final bool wasLastQuestion =
+        _questionIndex + 1 >= _exam.questions.length;
+    if (wasLastQuestion) {
+      _finishExam();
     } else {
-      setState(() => _index++);
-      _beginQuestion();
+      setState(() {
+        _questionIndex = _questionIndex + 1;
+      });
+      _startQuestionTimer();
     }
   }
 
-  Future<void> _finish() async {
-    final attempt = ExamAttempt(
+  Future<void> _finishExam() async {
+    final ExamAttempt attempt = ExamAttempt(
       courseId: _exam.courseId,
       stage: _exam.stage,
-      correct: _correct,
+      correct: _correctCount,
       total: _exam.questions.length,
       takenAt: DateTime.now(),
     );
+
     await _game.submitAttempt(attempt);
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(Routes.examResult);
@@ -104,14 +130,16 @@ class _ExamScreenState extends State<ExamScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Question question = _exam.questions[_index];
-    final total = _exam.questions.length;
+    final Question question = _exam.questions[_questionIndex];
+    final int total = _exam.questions.length;
+    final bool isLastQuestion = _questionIndex + 1 >= total;
 
     return PopScope(
+      // Don't let the player back out of an exam in progress.
       canPop: false,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('${_exam.stage.label} Exam'),
+          title: Text('${examStageLabel(_exam.stage)} Exam'),
           automaticallyImplyLeading: false,
         ),
         body: SafeArea(
@@ -123,13 +151,13 @@ class _ExamScreenState extends State<ExamScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Question ${_index + 1} of $total'),
+                    Text('Question ${_questionIndex + 1} of $total'),
                     Text('$_secondsLeft s'),
                   ],
                 ),
                 const SizedBox(height: AppTheme.gapS),
                 LinearProgressIndicator(
-                  value: _secondsLeft / _perQuestionSeconds,
+                  value: _secondsLeft / _secondsPerQuestion,
                 ),
                 const SizedBox(height: AppTheme.gapL),
                 Text(
@@ -137,22 +165,25 @@ class _ExamScreenState extends State<ExamScreen> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppTheme.gapL),
-                for (var i = 0; i < question.choices.length; i++)
+                for (int i = 0; i < question.choices.length; i++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppTheme.gapS),
                     child: RadioListTile<int>(
                       title: Text(question.choices[i]),
                       value: i,
-                      groupValue: _selected,
-                      onChanged: (value) => setState(() => _selected = value),
+                      groupValue: _selectedChoice,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedChoice = value;
+                        });
+                      },
                     ),
                   ),
                 const Spacer(),
                 FilledButton(
-                  onPressed: _selected == null ? null : _lockIn,
-                  child: Text(
-                    _index + 1 >= total ? 'Finish' : 'Next question',
-                  ),
+                  onPressed:
+                      _selectedChoice == null ? null : _submitAnswer,
+                  child: Text(isLastQuestion ? 'Finish' : 'Next question'),
                 ),
               ],
             ),

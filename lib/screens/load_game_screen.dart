@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../formatting.dart';
 import '../models/save_file.dart';
 import '../routes.dart';
 import '../services/save_service.dart';
 import '../state/game_state.dart';
 import '../theme/app_theme.dart';
 
-/// Lists existing save files (player name + date/time saved) and resumes one.
+/// Lists the saved games (player name + when it was saved) and lets the
+/// player continue one.
 class LoadGameScreen extends StatefulWidget {
   const LoadGameScreen({super.key});
 
@@ -16,6 +18,7 @@ class LoadGameScreen extends StatefulWidget {
 }
 
 class _LoadGameScreenState extends State<LoadGameScreen> {
+  // Filled in initState(), before build() runs.
   late List<SaveFile> _saves;
 
   @override
@@ -24,15 +27,11 @@ class _LoadGameScreenState extends State<LoadGameScreen> {
     _saves = context.read<SaveService>().listSaves();
   }
 
-  String _formatWhen(DateTime dt) {
-    final local = dt.toLocal();
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${local.year}-${two(local.month)}-${two(local.day)} '
-        '${two(local.hour)}:${two(local.minute)}';
-  }
+  void _continueFrom(SaveFile save) {
+    context.read<GameState>().loadGame(save);
 
-  void _load(SaveFile file) {
-    context.read<GameState>().loadGame(file);
+    // Go to gameplay, clearing the New/Load screen but keeping the menu
+    // underneath so Back returns there.
     Navigator.of(context).pushNamedAndRemoveUntil(
       Routes.gameplay,
       ModalRoute.withName(Routes.mainMenu),
@@ -44,26 +43,32 @@ class _LoadGameScreenState extends State<LoadGameScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Load Game')),
       body: SafeArea(
-        child: _saves.isEmpty
-            ? const Center(child: Text('No save files yet.'))
-            : ListView.separated(
-                padding: const EdgeInsets.all(AppTheme.gapM),
-                itemCount: _saves.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppTheme.gapS),
-                itemBuilder: (context, index) {
-                  final save = _saves[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(save.playerName),
-                      subtitle: Text(_formatWhen(save.savedAt)),
-                      trailing: const Icon(Icons.play_arrow),
-                      onTap: () => _load(save),
-                    ),
-                  );
-                },
-              ),
+        child: _buildBody(),
       ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_saves.isEmpty) {
+      return const Center(child: Text('No saved games yet.'));
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.gapM),
+      children: [
+        for (final save in _saves)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppTheme.gapS),
+            child: Card(
+              child: ListTile(
+                title: Text(save.playerName),
+                subtitle: Text(formatDateTime(save.savedAt)),
+                trailing: const Icon(Icons.play_arrow),
+                onTap: () => _continueFrom(save),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

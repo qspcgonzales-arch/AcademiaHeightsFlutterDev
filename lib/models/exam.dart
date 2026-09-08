@@ -1,32 +1,31 @@
 import 'question.dart';
 
-/// The three exams every course has, in the order they must be taken.
-enum ExamStage {
-  prelim('Prelim'),
-  midterm('Midterm'),
-  finals('Finals');
+/// The three exams, in the order they must be taken.
+enum ExamStage { prelim, midterm, finals }
 
-  const ExamStage(this.label);
-
-  final String label;
-
-  /// The stage that must be passed before this one unlocks, or `null` for
-  /// [ExamStage.prelim].
-  ExamStage? get prerequisite => switch (this) {
-        ExamStage.prelim => null,
-        ExamStage.midterm => ExamStage.prelim,
-        ExamStage.finals => ExamStage.midterm,
-      };
-
-  /// Seconds allowed per question. Difficulty rises Prelim -> Finals.
-  int get secondsPerQuestion => switch (this) {
-        ExamStage.prelim => 30,
-        ExamStage.midterm => 25,
-        ExamStage.finals => 20,
-      };
+/// The name shown to the player for a stage.
+String examStageLabel(ExamStage stage) {
+  if (stage == ExamStage.prelim) return 'Prelim';
+  if (stage == ExamStage.midterm) return 'Midterm';
+  return 'Finals';
 }
 
-/// A definition of one exam: its stage and its question bank.
+/// The stage that must be passed before [stage] can be taken.
+/// Returns null for Prelim, which is open from the start.
+ExamStage? prerequisiteOf(ExamStage stage) {
+  if (stage == ExamStage.midterm) return ExamStage.prelim;
+  if (stage == ExamStage.finals) return ExamStage.midterm;
+  return null;
+}
+
+/// Seconds allowed per question. Less time as the exams get harder.
+int secondsPerQuestionFor(ExamStage stage) {
+  if (stage == ExamStage.prelim) return 30;
+  if (stage == ExamStage.midterm) return 25;
+  return 20;
+}
+
+/// A definition of one exam: its stage and its list of questions.
 class Exam {
   const Exam({
     required this.courseId,
@@ -41,8 +40,8 @@ class Exam {
   int get questionCount => questions.length;
 }
 
-/// The outcome of one attempt at an exam. Immutable; produced by the exam
-/// screen and consumed by the result screen and [PlayerProfile].
+/// The result of one attempt at an exam. Made by the exam screen, then read
+/// by the result screen and by [PlayerProfile].
 class ExamAttempt {
   const ExamAttempt({
     required this.courseId,
@@ -58,28 +57,38 @@ class ExamAttempt {
   final int total;
   final DateTime takenAt;
 
-  double get score => total == 0 ? 0 : correct / total;
+  /// Score as a fraction from 0.0 to 1.0.
+  double get score {
+    if (total == 0) return 0;
+    return correct / total;
+  }
 
+  /// Score as a whole-number percentage (0 to 100).
   int get percent => (score * 100).round();
 
-  bool passedAt(double passMark) => score >= passMark;
+  /// True if this attempt reached [passMark] (a fraction, e.g. 0.6).
+  bool passed(double passMark) => score >= passMark;
 
-  /// EXP awarded for this attempt (simple linear model; tune later).
+  /// EXP awarded for this attempt: 10 per correct answer.
   int get expEarned => correct * 10;
 
-  Map<String, dynamic> toJson() => {
-        'courseId': courseId,
-        'stage': stage.name,
-        'correct': correct,
-        'total': total,
-        'takenAt': takenAt.toIso8601String(),
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'courseId': courseId,
+      'stage': stage.name,
+      'correct': correct,
+      'total': total,
+      'takenAt': takenAt.toIso8601String(),
+    };
+  }
 
-  factory ExamAttempt.fromJson(Map<String, dynamic> json) => ExamAttempt(
-        courseId: json['courseId'] as String,
-        stage: ExamStage.values.byName(json['stage'] as String),
-        correct: json['correct'] as int,
-        total: json['total'] as int,
-        takenAt: DateTime.parse(json['takenAt'] as String),
-      );
+  static ExamAttempt fromJson(Map<String, dynamic> json) {
+    return ExamAttempt(
+      courseId: json['courseId'] as String,
+      stage: ExamStage.values.byName(json['stage'] as String),
+      correct: json['correct'] as int,
+      total: json['total'] as int,
+      takenAt: DateTime.parse(json['takenAt'] as String),
+    );
+  }
 }

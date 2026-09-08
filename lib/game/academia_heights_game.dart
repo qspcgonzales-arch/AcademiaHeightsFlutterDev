@@ -8,41 +8,50 @@ import 'npc.dart';
 import 'player.dart';
 import 'tile_map.dart';
 
-/// What the player can currently interact with, published once per change
-/// (not every frame) so the Flutter HUD can rebuild cheaply.
-sealed class Interactable {
-  const Interactable();
+/// Whatever the player is currently standing next to. Exactly one of [npc] or
+/// [book] is set. The HUD uses this to show the right interact button.
+class NearbyTarget {
+  NearbyTarget.npc(this.npc) : book = null;
+  NearbyTarget.book(this.book) : npc = null;
+
+  final NpcComponent? npc;
+  final CollectibleBook? book;
+
+  bool get isNpc => npc != null;
 }
 
-class TalkTarget extends Interactable {
-  const TalkTarget(this.npc);
-  final NpcComponent npc;
-}
-
-class PickupTarget extends Interactable {
-  const PickupTarget(this.book);
-  final CollectibleBook book;
-}
-
-/// The Flame game for one course area. Scaffold version: fixed-view demo map,
-/// virtual joystick, one player, one instructor, a few books. Camera follow,
-/// real tile art, and multiple areas land in M1.
+/// The Flame game for the school map.
+///
+/// Scaffold version: a fixed-view demo map, a virtual joystick, one player,
+/// one instructor, and a few books. Real tile art, a following camera, and
+/// more NPCs come in milestone M1/M2.
+///
+/// Note: Flame runs its own `update`/`render` loop every frame. It does NOT
+/// use Flutter's rebuild system. We tell the Flutter HUD about changes
+/// through the `ValueNotifier`s below, and only when something actually
+/// changes — never every frame.
 class AcademiaHeightsGame extends FlameGame {
-  AcademiaHeightsGame({required this.courseId, required this.instructorName});
+  AcademiaHeightsGame({
+    required this.courseId,
+    required this.instructorName,
+  });
 
   final String courseId;
   final String instructorName;
 
-  /// Books picked up this session, by topic. Read by the gameplay screen.
+  /// How many books the player has picked up this session. The HUD listens
+  /// to this.
   final ValueNotifier<int> booksCollected = ValueNotifier<int>(0);
 
-  /// Current interact target, or null. The HUD listens to this.
-  final ValueNotifier<Interactable?> nearby =
-      ValueNotifier<Interactable?>(null);
+  /// What the player can interact with right now, or null. The HUD listens
+  /// to this to show/hide the interact button.
+  final ValueNotifier<NearbyTarget?> nearby =
+      ValueNotifier<NearbyTarget?>(null);
 
-  late final TileMapComponent _map;
-  late final PlayerComponent _player;
-  late final NpcComponent _instructor;
+  // Filled in during onLoad(). "late" means "set once, before first use".
+  late TileMapComponent _map;
+  late PlayerComponent _player;
+  late NpcComponent _instructor;
 
   @override
   Color backgroundColor() => AppTheme.ink;
@@ -52,7 +61,7 @@ class AcademiaHeightsGame extends FlameGame {
     _map = TileMapComponent(grid: demoGrid());
     await add(_map);
 
-    final joystick = JoystickComponent(
+    final JoystickComponent joystick = JoystickComponent(
       knob: CircleComponent(
         radius: 20,
         paint: Paint()..color = AppTheme.parchment.withValues(alpha: 0.9),
@@ -80,19 +89,23 @@ class AcademiaHeightsGame extends FlameGame {
     );
     await add(_instructor);
 
-    for (var i = 0; i < 3; i++) {
-      await add(
-        CollectibleBook(
-          id: '$courseId.book.$i',
-          topic: 'topic-$i',
-          position: Vector2(
-            AppTheme.tileSize * (5 + i * 3),
-            AppTheme.tileSize * (8 - i),
-          ),
-          onCollected: (_) => booksCollected.value++,
+    // Drop three books around the map.
+    for (int i = 0; i < 3; i++) {
+      final CollectibleBook book = CollectibleBook(
+        id: '$courseId.book.$i',
+        topic: 'topic-$i',
+        position: Vector2(
+          AppTheme.tileSize * (5 + i * 3),
+          AppTheme.tileSize * (8 - i),
         ),
+        onCollected: _onBookCollected,
       );
+      await add(book);
     }
+  }
+
+  void _onBookCollected(CollectibleBook book) {
+    booksCollected.value = booksCollected.value + 1;
   }
 
   @override
@@ -101,48 +114,55 @@ class AcademiaHeightsGame extends FlameGame {
     _refreshNearby();
   }
 
+  /// Works out what the player is next to and updates [nearby] if it changed.
   void _refreshNearby() {
-    final playerPos = _player.position;
+    final Vector2 playerPosition = _player.position;
 
-    for (final book in children.whereType<CollectibleBook>()) {
-      if (book.isPlayerInRange(playerPos)) {
-        _setNearby(PickupTarget(book));
+    // Books take priority over the instructor.
+    for (final Component child in children) {
+      if (child is CollectibleBook && child.isPlayerInRange(playerPosition)) {
+        _setNearby(NearbyTarget.book(child));
         return;
       }
     }
 
-    if (_instructor.isPlayerInRange(playerPos)) {
-      _setNearby(TalkTarget(_instructor));
+    if (_instructor.isPlayerInRange(playerPosition)) {
+      _setNearby(NearbyTarget.npc(_instructor));
       return;
     }
 
     _setNearby(null);
   }
 
-  void _setNearby(Interactable? value) {
-    final current = nearby.value;
-    final same = switch ((current, value)) {
-      (null, null) => true,
-      (TalkTarget a, TalkTarget b) => identical(a.npc, b.npc),
-      (PickupTarget a, PickupTarget b) => identical(a.book, b.book),
-      _ => false,
-    };
-    if (!same) nearby.value = value;
+  /// Only writes to [nearby] when the target actually changed, so the HUD
+  /// doesn't rebuild every frame.
+  void _setNearby(NearbyTarget? next) {
+    if (_isSameTarget(nearby.value, next)) return;
+    nearby.value = next;
   }
 
-  /// Called by the HUD interact button. Returns the NPC to talk to, if any.
-  NpcComponent? interact() {
-    final target = nearby.value;
-    switch (target) {
-      case PickupTarget(:final book):
-        book.collect();
-        _setNearby(null);
-        return null;
-      case TalkTarget(:final npc):
-        return npc;
-      case null:
-        return null;
+  bool _isSameTarget(NearbyTarget? a, NearbyTarget? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.npc != null && a.npc == b.npc) return true;
+    if (a.book != null && a.book == b.book) return true;
+    return false;
+  }
+
+  /// Called by the HUD's interact button. If the player is next to a book it
+  /// is collected and this returns null. If they are next to an NPC, that
+  /// NPC is returned so the screen can open its dialogue.
+  NpcComponent? interactWithNearby() {
+    final NearbyTarget? target = nearby.value;
+    if (target == null) return null;
+
+    if (target.book != null) {
+      target.book!.collect();
+      _setNearby(null);
+      return null;
     }
+
+    return target.npc;
   }
 
   @override

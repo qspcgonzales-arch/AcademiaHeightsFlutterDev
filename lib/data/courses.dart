@@ -1,13 +1,12 @@
 import '../models/course.dart';
 
-/// Stable id for the single academic track. Used in save files and
-/// [Exam]/[ExamAttempt] records.
+/// Id for the single academic track. Stored in save files and exam records.
 const String trackCourseId = 'ite013';
 
-/// Academia Heights is one academic track: the player passes the Prelim,
-/// Midterm, and Finals — each covering every module — to graduate. The
-/// [Course] model and this list are kept so the progress tracker and
-/// save/leaderboard code can stay generic if more tracks are added later.
+/// Academia Heights is one academic track: pass the Prelim, Midterm, and
+/// Finals (each covering every module) to graduate. The [Course] model and
+/// this list stay generic so more tracks could be added later, but today
+/// there is exactly one.
 const List<Course> courses = [
   Course(
     id: trackCourseId,
@@ -19,7 +18,5 @@ const List<Course> courses = [
   ),
 ];
 
-Course courseById(String id) => courses.firstWhere((c) => c.id == id);
-
-/// The single track (convenience for call sites that never need the list).
-Course get track => courses.first;
+/// The single track. Use this instead of writing `courses[0]` everywhere.
+Course get track => courses[0];

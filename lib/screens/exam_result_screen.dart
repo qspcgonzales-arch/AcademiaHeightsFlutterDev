@@ -21,7 +21,7 @@ class ExamResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<GameState>();
+    final GameState state = context.watch<GameState>();
     final ExamAttempt? attempt = state.lastAttempt;
     final profile = state.profile;
 
@@ -29,13 +29,17 @@ class ExamResultScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: Text('No result to show.')));
     }
 
-    final passed = attempt.passedAt(AppTheme.examPassMark);
-    final courseComplete = state.profile!.isCourseComplete(attempt.courseId) &&
-        attempt.stage == ExamStage.finals;
+    final bool passed = attempt.passed(AppTheme.examPassMark);
+
+    // Passing the Finals is what finishes the game.
+    bool graduated = false;
+    if (attempt.stage == ExamStage.finals) {
+      graduated = profile.isCourseComplete(attempt.courseId);
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${attempt.stage.label} Result'),
+        title: Text('${examStageLabel(attempt.stage)} Result'),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -70,7 +74,7 @@ class ExamResultScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (courseComplete)
+              if (graduated)
                 FilledButton(
                   onPressed: () => Navigator.of(context)
                       .pushReplacementNamed(Routes.certificate),

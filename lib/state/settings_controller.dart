@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persisted user preferences (audio levels, mute). Kept separate from
-/// [AudioController], which actually plays sound.
+/// Holds the player's audio settings (music level, sound-effects level, mute)
+/// and saves them to `shared_preferences`. [AudioController] is the part that
+/// actually plays sound.
 class SettingsController extends ChangeNotifier {
   SettingsController(this._prefs);
 
   final SharedPreferences _prefs;
+
+  static const String _musicKey = 'settings.musicVolume';
+  static const String _sfxKey = 'settings.sfxVolume';
+  static const String _mutedKey = 'settings.muted';
 
   double _musicVolume = 0.7;
   double _sfxVolume = 0.8;
@@ -16,31 +21,47 @@ class SettingsController extends ChangeNotifier {
   double get sfxVolume => _sfxVolume;
   bool get muted => _muted;
 
-  double get effectiveMusicVolume => _muted ? 0 : _musicVolume;
-  double get effectiveSfxVolume => _muted ? 0 : _sfxVolume;
+  /// The volume to actually play at: 0 while muted.
+  double get effectiveMusicVolume {
+    if (_muted) return 0;
+    return _musicVolume;
+  }
 
+  double get effectiveSfxVolume {
+    if (_muted) return 0;
+    return _sfxVolume;
+  }
+
+  /// Loads saved settings, or keeps the defaults above if nothing is saved.
   void load() {
-    _musicVolume = _prefs.getDouble('settings.musicVolume') ?? _musicVolume;
-    _sfxVolume = _prefs.getDouble('settings.sfxVolume') ?? _sfxVolume;
-    _muted = _prefs.getBool('settings.muted') ?? _muted;
+    _musicVolume = _prefs.getDouble(_musicKey) ?? _musicVolume;
+    _sfxVolume = _prefs.getDouble(_sfxKey) ?? _sfxVolume;
+    _muted = _prefs.getBool(_mutedKey) ?? _muted;
     notifyListeners();
   }
 
   Future<void> setMusicVolume(double value) async {
-    _musicVolume = value.clamp(0, 1);
+    _musicVolume = _inRange(value);
     notifyListeners();
-    await _prefs.setDouble('settings.musicVolume', _musicVolume);
+    await _prefs.setDouble(_musicKey, _musicVolume);
   }
 
   Future<void> setSfxVolume(double value) async {
-    _sfxVolume = value.clamp(0, 1);
+    _sfxVolume = _inRange(value);
     notifyListeners();
-    await _prefs.setDouble('settings.sfxVolume', _sfxVolume);
+    await _prefs.setDouble(_sfxKey, _sfxVolume);
   }
 
   Future<void> setMuted(bool value) async {
     _muted = value;
     notifyListeners();
-    await _prefs.setBool('settings.muted', _muted);
+    await _prefs.setBool(_mutedKey, _muted);
+  }
+
+  /// Keeps a volume between 0 and 1.
+  double _inRange(double value) {
+    if (value < 0) return 0;
+    if (value > 1) return 1;
+    return value;
   }
 }

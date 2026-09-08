@@ -2,8 +2,8 @@ import 'dart:math';
 
 /// One multiple-choice exam question.
 ///
-/// Every question bank — Prelim, Midterm, Finals — uses this exact shape so
-/// the exam screen can render any of them the same way.
+/// Every question bank (Prelim, Midterm, Finals) uses this exact shape so the
+/// exam screen can show any of them the same way.
 class Question {
   const Question({
     required this.prompt,
@@ -13,47 +13,69 @@ class Question {
   })  : assert(choices.length == 4, 'a question needs exactly 4 choices'),
         assert(
           correctIndex >= 0 && correctIndex < 4,
-          'correctIndex must be 0-3',
+          'correctIndex must be 0 to 3',
         );
 
+  /// The question text.
   final String prompt;
 
-  /// Exactly four options. Index order is the display order.
+  /// Exactly four answer options, shown in this order.
   final List<String> choices;
 
-  /// Index into [choices] of the correct answer (0-3).
+  /// Position in [choices] of the right answer (0, 1, 2, or 3).
   final int correctIndex;
 
-  /// Optional one-line rationale shown on the result screen.
+  /// Optional one-line reason, shown on the result screen.
   final String? explanation;
 
+  /// True if [selectedIndex] is the right answer.
   bool isCorrect(int selectedIndex) => selectedIndex == correctIndex;
 
-  /// A copy with the choices reordered by [random] and [correctIndex] moved
-  /// to wherever the right answer landed. The exam screen calls this per
-  /// attempt so the correct option isn't always in the same slot.
+  /// Returns a copy of this question with the four choices put in a random
+  /// order, so the right answer isn't always in the same spot. The exam
+  /// screen calls this once per attempt.
   Question shuffledChoices(Random random) {
-    final order = List<int>.generate(choices.length, (i) => i)
-      ..shuffle(random);
+    // Start with the positions 0,1,2,3 and mix them up.
+    final List<int> newOrder = [0, 1, 2, 3];
+    newOrder.shuffle(random);
+
+    // Build the reordered choices and find where the right answer moved to.
+    final List<String> reordered = [];
+    int newCorrectIndex = 0;
+    for (int position = 0; position < newOrder.length; position++) {
+      final int oldPosition = newOrder[position];
+      reordered.add(choices[oldPosition]);
+      if (oldPosition == correctIndex) {
+        newCorrectIndex = position;
+      }
+    }
+
     return Question(
       prompt: prompt,
-      choices: [for (final i in order) choices[i]],
-      correctIndex: order.indexOf(correctIndex),
+      choices: reordered,
+      correctIndex: newCorrectIndex,
       explanation: explanation,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'prompt': prompt,
-        'choices': choices,
-        'correctIndex': correctIndex,
-        if (explanation != null) 'explanation': explanation,
-      };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> json = {
+      'prompt': prompt,
+      'choices': choices,
+      'correctIndex': correctIndex,
+    };
+    if (explanation != null) {
+      json['explanation'] = explanation;
+    }
+    return json;
+  }
 
-  factory Question.fromJson(Map<String, dynamic> json) => Question(
-        prompt: json['prompt'] as String,
-        choices: (json['choices'] as List<dynamic>).cast<String>(),
-        correctIndex: json['correctIndex'] as int,
-        explanation: json['explanation'] as String?,
-      );
+  static Question fromJson(Map<String, dynamic> json) {
+    return Question(
+      prompt: json['prompt'] as String,
+      choices: (json['choices'] as List<dynamic>).cast<String>(),
+      correctIndex: json['correctIndex'] as int,
+      explanation: json['explanation'] as String?,
+    );
+  }
 }

@@ -129,6 +129,51 @@ UI. (A debug-only keyboard fallback is acceptable if clearly marked.)
   (dialogue, pause menu) are Flutter widgets layered via Flame's overlay API
   or a `Stack`.
 
+## Two project principles — these override "clever"
+
+### 1. Readable by a non-programmer
+
+An instructor and teammates who are still learning Dart have to read this
+code. Write the plain, obvious version even when a shorter one exists.
+
+**Do:**
+- `if` / `else if` / `else` for branching. Small, single-purpose functions.
+- Ordinary `for (final item in list)` loops. Build a list by making an empty
+  one and `.add()`-ing to it in a loop.
+- Full words for names (`questionIndex`, not `qIdx`). No one-letter names
+  except a loop counter `i`.
+- A short `//` comment in plain English above anything that isn't obvious at
+  a glance — and above every use of `~/`, `??`, `?.`, `..`, `late`, or a
+  `Random`.
+
+**Avoid (rewrite if you find it):**
+- `switch` *expressions* (`x = switch (y) { ... }`) and pattern matching
+  (`case Foo(:final bar)`, record patterns). Use `if` chains.
+- `sealed` classes, `mixin`s you write yourself, extension methods, generics
+  beyond `List<T>` / `Map<K, V>`, tear-offs (`list.forEach(print)`).
+- Method chains that do real work (`list.where(...).map(...).fold(...)`).
+  One step per line, or a loop.
+- Collection-`for` / `if` inside pure logic. **Exception:** it is fine
+  *inside a widget list* (`children: [ for (...) Widget() ]`) — that is
+  standard Flutter and the alternatives are worse.
+
+If an advanced feature genuinely is the clearest option, use it **and leave
+a comment explaining what it does.**
+
+### 2. Rapid development
+
+This is a one-term project with a demo deadline. Favour shipping a working
+slice over a perfect design.
+
+- Build one feature end to end (screen → state → save) before starting the
+  next. Follow the milestone list in `docs/DESIGN.md` in order.
+- Use the simplest thing that works. Don't add a layer, an interface, or a
+  config option "for later" — add it when "later" arrives.
+- Hard-code sensible values; pull them into constants only once a second
+  place needs them.
+- Don't block a feature on polish (animation, theming, edge cases). Land it,
+  note the follow-up in `docs/DESIGN.md`, move on.
+
 ## Coding style
 
 - `PascalCase` types, `camelCase` members, `lowercase_with_underscores.dart`
