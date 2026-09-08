@@ -39,7 +39,7 @@ class _ExamScreenState extends State<ExamScreen> {
 
     _game = context.read<GameState>();
     final stage = ModalRoute.of(context)!.settings.arguments as ExamStage;
-    _exam = examFor(_game.currentCourse.id, stage);
+    _exam = examFor(stage);
     _perQuestionSeconds = stage.secondsPerQuestion;
     _beginQuestion();
   }

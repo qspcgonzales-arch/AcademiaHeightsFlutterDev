@@ -12,9 +12,11 @@ for a past class, now being **rebuilt as an Android mobile app** with Flutter
 
 The player walks around a tile-based school, collects study-material books,
 talks to instructor NPCs, and takes multiple-choice exams to progress through
-**Prelim → Midterm → Finals** for each course. Passing all three exams in a
-course awards a certificate and unlocks the next course. Finishing the last
-course wins the game.
+**Prelim → Midterm → Finals**. The game is a **single academic track** (the
+ITE 013 course) — each exam covers every module. Passing all three exams
+graduates the player and shows the Certificate of Excellence. The `Course`
+model and `courses` list are kept generic in case more tracks are added
+later, but today there is exactly one.
 
 ## Tech stack — do not deviate without asking
 
@@ -68,8 +70,10 @@ ask rather than guessing.
 
 - **Exam questions** are a `List<Question>`. `Question` = `prompt` (String),
   `choices` (`List<String>`, length 4), `correctIndex` (int, 0-3), optional
-  `explanation`. Every question bank — Prelim, Midterm, Finals, every course
-  — uses this exact shape so the exam screen renders any of them the same way.
+  `explanation`. There is one bank per stage — `prelimQuestions` (10),
+  `midtermQuestions` (15), `finalsQuestions` (20) in
+  `lib/data/questions_data.dart`, mirrored in `docs/quiz_bank.md`. All use
+  this exact shape so the exam screen renders any of them the same way.
 - **Tile maps** are `List<List<int>>` (row-major). Loops iterate
   rows/columns to place tiles and to test collision. `0` = walkable;
   non-zero = specific tile / blocked (document the mapping where the map is
@@ -88,7 +92,7 @@ ask rather than guessing.
 2. Finals is locked until Midterm is **passed** for that course.
 3. An exam cannot start until the player has talked to the matching
    instructor NPC.
-4. Passing all three exams completes the course and unlocks the next one.
+4. Passing all three exams graduates the player (Certificate of Excellence).
 5. Failing an exam is **not** game over — the player reviews and retries.
    No lives, no health.
 6. Each exam question has a countdown timer; difficulty rises Prelim → Finals.

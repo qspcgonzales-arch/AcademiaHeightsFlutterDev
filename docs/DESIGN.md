@@ -4,6 +4,12 @@ Distilled from the project proposal. This is the reference the screens and
 systems are built against. If gameplay drifts from this, update this file in
 the same PR.
 
+> **Structure decision (2026-09-08):** the game is a **single academic track**
+> (ITE 013), not multiple courses. One set of exams — Prelim (10), Midterm
+> (15), Finals (20) — each covering every module. Passing all three graduates
+> the player. Question bank: `lib/data/questions_data.dart` /
+> `docs/quiz_bank.md`. "Course" wording below reads as "the track".
+
 ## Core loop
 
 1. Enter a course area (a tile-based map).
@@ -87,7 +93,8 @@ Questions quiz the player on the course's own topics:
 
 - `Question` — `prompt`, `choices` (4), `correctIndex` (0-3),
   `explanation?`.
-- Question bank — `List<Question>` per (course, stage). Same shape everywhere.
+- Question bank — one `List<Question>` per stage (`prelimQuestions`,
+  `midtermQuestions`, `finalsQuestions`). Same shape everywhere.
 - `PlayerProfile` — `name`, `level`, `exp`, `courseProgress`
   (per course: which of Prelim/Midterm/Finals are passed + their scores).
 - Tile map — `List<List<int>>`, `0` walkable, non-zero blocked/typed.
@@ -97,12 +104,15 @@ Questions quiz the player on the course's own topics:
 
 - [x] **M0 — Scaffold:** project structure, `pubspec.yaml`, `CLAUDE.md`,
       navigation between stub screens.
+- [x] **Quiz bank:** full Prelim/Midterm/Finals questions in
+      `lib/data/questions_data.dart` (`docs/quiz_bank.md` is the readable copy).
 - [ ] **M1 — Core gameplay (Flame):** tile map render + collision, player
       component, virtual joystick, camera follow.
 - [ ] **M2 — Interaction:** NPC components, tap-to-interact, dialogue box,
       collectible books, decision prompt.
-- [ ] **M3 — Exam system:** `Question` model, question banks, exam screen
-      with per-question timer, scoring, result screen, EXP/level.
+- [ ] **M3 — Exam system:** wire the banks into the exam screen with a
+      per-question timer, scoring, result screen, EXP/level. (`Question` model
+      and the banks already exist.)
 - [ ] **M4 — Progression & persistence:** locked Prelim→Midterm→Finals,
       progress tracker, certificate, `SaveService` + `LeaderboardService`
       on `shared_preferences`, Save/Load screen, auto-save.
