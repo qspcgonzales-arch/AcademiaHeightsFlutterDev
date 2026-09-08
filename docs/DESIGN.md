@@ -41,7 +41,7 @@ the same PR.
 | **NPC Decision Prompt** | Branch | "Take the exam now" / "I will review first" |
 | **Gameplay** | Main view | Top-left: name, level, EXP bar. Top-right: menu icons. Character centered. Virtual joystick + interact button. |
 | **Collecting Study Material** | Feedback | Prompt when near a book; tap-to-interact collects it |
-| **Exam** | Test | One MCQ at a time, 4 choices, countdown timer per question |
+| **Exam** | Test | One MCQ at a time, 4 choices (shuffled per attempt), countdown timer per question |
 | **Exam Result** | Feedback | Score (e.g. 10/10, 100%), EXP earned, new level progress, remark |
 | **Academic Progress Tracker** | Overview | Prelim / Midterm / Finals status, course completion %, next exam |
 | **Certificate of Excellence** | Reward | Player name, overall score, honors (e.g. "Summa Cum Laude") |

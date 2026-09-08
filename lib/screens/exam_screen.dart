@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,9 +40,23 @@ class _ExamScreenState extends State<ExamScreen> {
 
     _game = context.read<GameState>();
     final stage = ModalRoute.of(context)!.settings.arguments as ExamStage;
-    _exam = examFor(stage);
+    _exam = _shuffleAnswers(examFor(stage));
     _perQuestionSeconds = stage.secondsPerQuestion;
     _beginQuestion();
+  }
+
+  /// Reorders each question's four choices so the correct answer isn't always
+  /// in the same position. Question order is left as authored.
+  Exam _shuffleAnswers(Exam exam) {
+    final random = Random();
+    return Exam(
+      courseId: exam.courseId,
+      stage: exam.stage,
+      questions: [
+        for (final question in exam.questions)
+          question.shuffledChoices(random),
+      ],
+    );
   }
 
   void _beginQuestion() {

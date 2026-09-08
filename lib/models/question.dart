@@ -1,7 +1,9 @@
+import 'dart:math';
+
 /// One multiple-choice exam question.
 ///
-/// Every question bank — Prelim, Midterm, Finals, for every course — uses
-/// this exact shape so the exam screen can render any of them the same way.
+/// Every question bank — Prelim, Midterm, Finals — uses this exact shape so
+/// the exam screen can render any of them the same way.
 class Question {
   const Question({
     required this.prompt,
@@ -26,6 +28,20 @@ class Question {
   final String? explanation;
 
   bool isCorrect(int selectedIndex) => selectedIndex == correctIndex;
+
+  /// A copy with the choices reordered by [random] and [correctIndex] moved
+  /// to wherever the right answer landed. The exam screen calls this per
+  /// attempt so the correct option isn't always in the same slot.
+  Question shuffledChoices(Random random) {
+    final order = List<int>.generate(choices.length, (i) => i)
+      ..shuffle(random);
+    return Question(
+      prompt: prompt,
+      choices: [for (final i in order) choices[i]],
+      correctIndex: order.indexOf(correctIndex),
+      explanation: explanation,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'prompt': prompt,

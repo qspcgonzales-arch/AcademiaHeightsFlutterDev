@@ -96,6 +96,9 @@ ask rather than guessing.
 5. Failing an exam is **not** game over — the player reviews and retries.
    No lives, no health.
 6. Each exam question has a countdown timer; difficulty rises Prelim → Finals.
+7. The four choices are **shuffled per attempt** (`Question.shuffledChoices`),
+   so the correct answer isn't always in the same slot. Question order is
+   currently left as authored.
 
 Exam **subject matter** (what questions quiz the player on): Module 1
 (Intro to Flutter), Module 2 (Emerging Technologies / app planning),
