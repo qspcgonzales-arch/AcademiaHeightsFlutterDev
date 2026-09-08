@@ -1,0 +1,45 @@
+name: academia_heights
+description: "Academia Heights - A 2D School Adventure Top-down Game (Flutter & Flame Mobile Edition)."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Game engine (game loop, sprites, tile map, camera, collision).
+  flame: ^1.18.0
+  # Background music and sound effects.
+  flame_audio: ^2.10.0
+
+  # App-wide state (player stats, progress, settings).
+  provider: ^6.1.2
+
+  # On-device save files and leaderboard.
+  shared_preferences: ^2.3.2
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/audio/
+    - assets/tiles/
+
+  # Pixel-art font placeholder. Drop a .ttf into assets/fonts/ and
+  # uncomment to use it across the app.
+  # fonts:
+  #   - family: PressStart2P
+  #     fonts:
+  #       - asset: assets/fonts/PressStart2P-Regular.ttf
