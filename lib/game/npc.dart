@@ -25,8 +25,23 @@ class NpcComponent extends PositionComponent {
   /// How close (world pixels) the player must be to interact.
   double interactRadius = AppTheme.tileSize * 1.4;
 
-  // "..color =" sets the colour on the new Paint and keeps the Paint.
-  final Paint _paint = Paint()..color = AppTheme.brass;
+  Sprite? _portrait;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _portrait = await Sprite.load('npc/${_portraitFileFor(id)}');
+  }
+
+  /// The Principal gets their own portrait; every instructor cycles through
+  /// the three teacher portraits, picked from the course id so the same
+  /// course always shows the same teacher.
+  String _portraitFileFor(String npcId) {
+    if (!isInstructor) return 'Principal.png';
+
+    final int teacherNumber = 1 + (npcId.hashCode.abs() % 3);
+    return 'Teacher$teacherNumber.png';
+  }
 
   bool isPlayerInRange(Vector2 playerPosition) {
     final double distance = playerPosition.distanceTo(position);
@@ -35,10 +50,8 @@ class NpcComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawCircle(
-      (size / 2).toOffset(),
-      size.x / 2,
-      _paint,
-    );
+    final Sprite? portrait = _portrait;
+    if (portrait == null) return; // not loaded yet
+    portrait.render(canvas, size: size);
   }
 }

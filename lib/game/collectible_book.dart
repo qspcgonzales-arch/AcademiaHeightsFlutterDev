@@ -29,8 +29,16 @@ class CollectibleBook extends PositionComponent {
 
   bool _collected = false;
 
-  // "..color =" sets the colour on the new Paint and keeps the Paint.
-  final Paint _paint = Paint()..color = AppTheme.ivy;
+  Sprite? _sprite;
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    // Six book-cover designs (B1-B6.png); pick one from the book's id so the
+    // same book always looks the same.
+    final int bookNumber = 1 + (id.hashCode.abs() % 6);
+    _sprite = await Sprite.load('books/B$bookNumber.png');
+  }
 
   bool isPlayerInRange(Vector2 playerPosition) {
     if (_collected) return false;
@@ -47,6 +55,8 @@ class CollectibleBook extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    canvas.drawRect(size.toRect(), _paint);
+    final Sprite? sprite = _sprite;
+    if (sprite == null) return; // not loaded yet
+    sprite.render(canvas, size: size);
   }
 }

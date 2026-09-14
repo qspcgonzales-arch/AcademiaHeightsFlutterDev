@@ -18,11 +18,37 @@ class TileMapComponent extends PositionComponent {
   int get columns => grid[0].length;
   double get tileSize => AppTheme.tileSize;
 
+  // The main ground and wall tiles. The old project also contains campus
+  // props like trees, stones, and seating, which we render as decorations.
+  final Map<String, Sprite> _sprites = {};
+  late final List<_MapDecoration> _decorations = [
+    const _MapDecoration(row: 2, column: 2, assetName: 'tree00', size: 1.15),
+    const _MapDecoration(row: 2, column: 16, assetName: 'tree00', size: 1.1),
+    const _MapDecoration(row: 8, column: 4, assetName: 'bush', size: 1.0),
+    const _MapDecoration(row: 9, column: 12, assetName: 'stone', size: 1.0),
+    const _MapDecoration(row: 7, column: 17, assetName: 'ChairD', size: 0.9),
+    const _MapDecoration(row: 10, column: 7, assetName: 'CabinetR', size: 0.9),
+    const _MapDecoration(row: 10, column: 14, assetName: 'tree00', size: 1.2),
+    const _MapDecoration(row: 11, column: 18, assetName: 'bush', size: 1.0),
+  ];
+
   /// Total map size in pixels, from the number of rows and columns.
   static Vector2 _pixelSize(List<List<int>> grid) {
     final int rows = grid.length;
     final int columns = grid[0].length;
     return Vector2(columns * AppTheme.tileSize, rows * AppTheme.tileSize);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+    _sprites['grass'] = await Sprite.load('tiles/grass.png');
+    _sprites['wall'] = await Sprite.load('tiles/Wall.png');
+    _sprites['tree00'] = await Sprite.load('tiles/tree00.png');
+    _sprites['bush'] = await Sprite.load('tiles/bush.png');
+    _sprites['stone'] = await Sprite.load('tiles/Stone.png');
+    _sprites['ChairD'] = await Sprite.load('tiles/ChairD.png');
+    _sprites['CabinetR'] = await Sprite.load('tiles/CabinetR.png');
   }
 
   /// True if the cell is a wall, or outside the map.
@@ -50,34 +76,50 @@ class TileMapComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final Paint walkablePaint = Paint();
-    walkablePaint.color = AppTheme.chalkboard.withValues(alpha: 0.35);
-
-    final Paint blockedPaint = Paint();
-    blockedPaint.color = AppTheme.ink;
-
-    final Paint gridLinePaint = Paint();
-    gridLinePaint.color = Colors.white.withValues(alpha: 0.05);
-    gridLinePaint.style = PaintingStyle.stroke;
-
     for (int row = 0; row < rows; row++) {
       for (int column = 0; column < columns; column++) {
-        final Rect cell = Rect.fromLTWH(
-          column * tileSize,
-          row * tileSize,
-          tileSize,
-          tileSize,
+        final Vector2 cellPosition = Vector2(column * tileSize, row * tileSize);
+        final Sprite tileSprite =
+            grid[row][column] == 0 ? _sprites['grass']! : _sprites['wall']!;
+        tileSprite.render(
+          canvas,
+          position: cellPosition,
+          size: Vector2.all(tileSize),
         );
-
-        if (grid[row][column] == 0) {
-          canvas.drawRect(cell, walkablePaint);
-        } else {
-          canvas.drawRect(cell, blockedPaint);
-        }
-        canvas.drawRect(cell, gridLinePaint);
       }
     }
+
+    for (final decoration in _decorations) {
+      final Sprite? sprite = _sprites[decoration.assetName];
+      if (sprite == null) continue;
+
+      final Vector2 position = Vector2(
+        decoration.column * tileSize + (tileSize / 2),
+        decoration.row * tileSize + (tileSize / 2),
+      );
+
+      sprite.render(
+        canvas,
+        position: position,
+        size: Vector2.all(tileSize * decoration.size),
+        anchor: Anchor.center,
+      );
+    }
   }
+}
+
+class _MapDecoration {
+  const _MapDecoration({
+    required this.row,
+    required this.column,
+    required this.assetName,
+    required this.size,
+  });
+
+  final int row;
+  final int column;
+  final String assetName;
+  final double size;
 }
 
 /// A small hand-made placeholder map: a wall around the edge plus two inner
