@@ -126,8 +126,7 @@ void main() {
         passMark: passMark,
       );
 
-      final PlayerProfile restored =
-          PlayerProfile.fromJson(profile.toJson());
+      final PlayerProfile restored = PlayerProfile.fromJson(profile.toJson());
 
       expect(restored.name, 'Ada');
       expect(restored.exp, profile.exp);

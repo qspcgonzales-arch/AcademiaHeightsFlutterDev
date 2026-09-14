@@ -5,7 +5,7 @@ import 'dart:math';
 /// Every question bank (Prelim, Midterm, Finals) uses this exact shape so the
 /// exam screen can show any of them the same way.
 class Question {
-  const Question({
+  Question({
     required this.prompt,
     required this.choices,
     required this.correctIndex,

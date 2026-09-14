@@ -4,7 +4,7 @@ import 'package:academia_heights/models/question.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  const Question question = Question(
+  final Question question = Question(
     prompt: 'Which language does Flutter use?',
     choices: ['Java', 'Dart', 'Swift', 'Kotlin'],
     correctIndex: 1,

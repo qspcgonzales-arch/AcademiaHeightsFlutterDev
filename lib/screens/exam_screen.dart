@@ -96,8 +96,7 @@ class _ExamScreenState extends State<ExamScreen> {
       }
     }
 
-    final bool wasLastQuestion =
-        _questionIndex + 1 >= _exam.questions.length;
+    final bool wasLastQuestion = _questionIndex + 1 >= _exam.questions.length;
     if (wasLastQuestion) {
       _finishExam();
     } else {
@@ -119,7 +118,9 @@ class _ExamScreenState extends State<ExamScreen> {
 
     await _game.submitAttempt(attempt);
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(Routes.examResult);
+    unawaited(
+      Navigator.of(context).pushReplacementNamed(Routes.examResult),
+    );
   }
 
   @override
@@ -165,24 +166,29 @@ class _ExamScreenState extends State<ExamScreen> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: AppTheme.gapL),
-                for (int i = 0; i < question.choices.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppTheme.gapS),
-                    child: RadioListTile<int>(
-                      title: Text(question.choices[i]),
-                      value: i,
-                      groupValue: _selectedChoice,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedChoice = value;
-                        });
-                      },
-                    ),
+                RadioGroup<int>(
+                  groupValue: _selectedChoice,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedChoice = value;
+                    });
+                  },
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < question.choices.length; i++)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppTheme.gapS),
+                          child: RadioListTile<int>(
+                            title: Text(question.choices[i]),
+                            value: i,
+                          ),
+                        ),
+                    ],
                   ),
+                ),
                 const Spacer(),
                 FilledButton(
-                  onPressed:
-                      _selectedChoice == null ? null : _submitAnswer,
+                  onPressed: _selectedChoice == null ? null : _submitAnswer,
                   child: Text(isLastQuestion ? 'Finish' : 'Next question'),
                 ),
               ],

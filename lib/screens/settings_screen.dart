@@ -48,8 +48,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppTheme.gapL),
             TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(Routes.controls),
+              onPressed: () => Navigator.of(context).pushNamed(Routes.controls),
               child: const Text('View controls'),
             ),
           ],

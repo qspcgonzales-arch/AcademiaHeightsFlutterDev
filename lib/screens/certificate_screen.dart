@@ -55,7 +55,8 @@ class CertificateScreen extends StatelessWidget {
                   const SizedBox(height: AppTheme.gapL),
                   Text(
                     'Awarded to',
-                    style: TextStyle(color: AppTheme.ink.withValues(alpha: 0.7)),
+                    style:
+                        TextStyle(color: AppTheme.ink.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: AppTheme.gapXs),
                   Text(
@@ -68,12 +69,12 @@ class CertificateScreen extends StatelessWidget {
                   const SizedBox(height: AppTheme.gapL),
                   Text(
                     'Overall score: $average%',
-                    style: TextStyle(color: AppTheme.ink),
+                    style: const TextStyle(color: AppTheme.ink),
                   ),
                   const SizedBox(height: AppTheme.gapXs),
                   Text(
                     _honors(average),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppTheme.ink,
                       fontWeight: FontWeight.bold,
                     ),

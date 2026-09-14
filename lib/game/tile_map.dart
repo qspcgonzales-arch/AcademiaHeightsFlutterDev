@@ -10,8 +10,7 @@ import '../theme/app_theme.dart';
 /// number means it's blocked (a wall, a tree, etc). This is the Module 4
 /// "arrays + loops" part of the project.
 class TileMapComponent extends PositionComponent {
-  TileMapComponent({required this.grid})
-      : super(size: _pixelSize(grid));
+  TileMapComponent({required this.grid}) : super(size: _pixelSize(grid));
 
   final List<List<int>> grid;
 
@@ -100,10 +99,8 @@ List<List<int>> demoGrid() {
 
 /// 1 = wall, 0 = walkable, for the demo map.
 int _demoCell(int row, int column, int rows, int columns) {
-  final bool onEdge = row == 0 ||
-      column == 0 ||
-      row == rows - 1 ||
-      column == columns - 1;
+  final bool onEdge =
+      row == 0 || column == 0 || row == rows - 1 || column == columns - 1;
   if (onEdge) return 1;
 
   final bool onHorizontalWall = row == 5 && column >= 6 && column <= 12;

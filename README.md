@@ -100,6 +100,8 @@ lib/
 
 ## Status
 
-Early scaffold. Screens and systems are stubbed and wired for navigation;
-gameplay, exam logic, and persistence are still to be built. See the
-milestone checklist in `docs/DESIGN.md`.
+Core gameplay baseline is implemented: the Flame map renders, the player moves
+with a virtual joystick, walls block movement, books can be collected, and the
+instructor interaction opens the exam decision flow. Exam progression,
+persistence, and polish remain in progress. See the milestone checklist in
+`docs/DESIGN.md`.

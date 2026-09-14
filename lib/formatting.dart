@@ -1,5 +1,3 @@
-/// Small shared text helpers.
-
 /// Formats a date and time as `YYYY-MM-DD HH:MM` in the device's local time.
 /// Used by the Load Game and Save / Load screens.
 String formatDateTime(DateTime dateTime) {

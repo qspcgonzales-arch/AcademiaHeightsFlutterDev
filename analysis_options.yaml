@@ -8,6 +8,9 @@ analyzer:
     # Treat missing return types and unused imports as build-blocking.
     always_declare_return_types: error
     unused_import: error
+  exclude:
+    - build/**
+    - android/**
 
 linter:
   rules:

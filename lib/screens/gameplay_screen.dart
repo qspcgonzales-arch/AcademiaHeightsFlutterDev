@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -203,7 +205,9 @@ class _GameplayScreenState extends State<GameplayScreen> {
     );
 
     if (takeNow == true && mounted) {
-      Navigator.of(context).pushNamed(Routes.exam, arguments: stage);
+      unawaited(
+        Navigator.of(context).pushNamed(Routes.exam, arguments: stage),
+      );
     }
   }
 

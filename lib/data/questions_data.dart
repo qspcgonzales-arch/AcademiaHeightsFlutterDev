@@ -9,7 +9,7 @@ import '../models/question.dart';
 // ---------------------------------------------------------------------
 // PRELIM — 10 questions (foundational: Flutter basics, Arduino intro, HCI intro)
 // ---------------------------------------------------------------------
-const List<Question> prelimQuestions = [
+final List<Question> prelimQuestions = [
   Question(
     prompt: "What is Flutter?",
     choices: [
@@ -32,7 +32,12 @@ const List<Question> prelimQuestions = [
   ),
   Question(
     prompt: "What command checks if Flutter is installed correctly?",
-    choices: ["flutter check", "flutter doctor", "flutter verify", "flutter status"],
+    choices: [
+      "flutter check",
+      "flutter doctor",
+      "flutter verify",
+      "flutter status"
+    ],
     correctIndex: 1,
   ),
   Question(
@@ -87,7 +92,12 @@ const List<Question> prelimQuestions = [
   ),
   Question(
     prompt: "What does WWW stand for?",
-    choices: ["World Wide Web", "World Web Wiring", "Wide World Web", "World Wide Wireless"],
+    choices: [
+      "World Wide Web",
+      "World Web Wiring",
+      "Wide World Web",
+      "World Wide Wireless"
+    ],
     correctIndex: 0,
   ),
 ];
@@ -95,9 +105,10 @@ const List<Question> prelimQuestions = [
 // ---------------------------------------------------------------------
 // MIDTERM — 15 questions (mid-level: architecture/Dart, loops/arrays, HCI)
 // ---------------------------------------------------------------------
-const List<Question> midtermQuestions = [
+final List<Question> midtermQuestions = [
   Question(
-    prompt: "In Flutter's architecture, what is the basic building block of the UI?",
+    prompt:
+        "In Flutter's architecture, what is the basic building block of the UI?",
     choices: ["A page", "A widget", "A controller", "A module"],
     correctIndex: 1,
   ),
@@ -133,7 +144,12 @@ const List<Question> midtermQuestions = [
   ),
   Question(
     prompt: "The Arduino programming language is based on which languages?",
-    choices: ["Python and Java", "C and C++", "Dart and Kotlin", "JavaScript and PHP"],
+    choices: [
+      "Python and Java",
+      "C and C++",
+      "Dart and Kotlin",
+      "JavaScript and PHP"
+    ],
     correctIndex: 1,
   ),
   Question(
@@ -147,7 +163,8 @@ const List<Question> midtermQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "What is the key difference between a while loop and a do-while loop?",
+    prompt:
+        "What is the key difference between a while loop and a do-while loop?",
     choices: [
       "There is no difference",
       "A do-while loop runs its code at least once before checking the condition",
@@ -182,8 +199,14 @@ const List<Question> midtermQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which of these is one of the 6 Design Principles discussed in HCI?",
-    choices: ["Randomness", "Feedback (letting the user know an action happened)", "Complexity", "Ambiguity"],
+    prompt:
+        "Which of these is one of the 6 Design Principles discussed in HCI?",
+    choices: [
+      "Randomness",
+      "Feedback (letting the user know an action happened)",
+      "Complexity",
+      "Ambiguity"
+    ],
     correctIndex: 1,
   ),
   Question(
@@ -207,7 +230,8 @@ const List<Question> midtermQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "In web development, what do \"frontend\" and \"backend\" refer to?",
+    prompt:
+        "In web development, what do \"frontend\" and \"backend\" refer to?",
     choices: [
       "Frontend is the server, backend is the browser",
       "Frontend is what users see/interact with; backend handles data and server logic",
@@ -217,7 +241,8 @@ const List<Question> midtermQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "What is the main difference between native and cross-platform mobile development?",
+    prompt:
+        "What is the main difference between native and cross-platform mobile development?",
     choices: [
       "Native apps don't need code",
       "Native apps are built for one platform (e.g., Android only); cross-platform apps run on multiple platforms from one codebase",
@@ -232,7 +257,7 @@ const List<Question> midtermQuestions = [
 // FINALS — 20 questions (harder / integration: usability metrics, design
 // thinking, full Web & Mobile Development module, cross-topic synthesis)
 // ---------------------------------------------------------------------
-const List<Question> finalsQuestions = [
+final List<Question> finalsQuestions = [
   Question(
     prompt: "What rendering technology does Flutter use to draw its UI?",
     choices: [
@@ -254,12 +279,19 @@ const List<Question> finalsQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "In most programming languages, how are array indexes typically counted?",
-    choices: ["Starting from 1", "Starting from 0", "Starting from -1", "Arrays don't use indexes"],
+    prompt:
+        "In most programming languages, how are array indexes typically counted?",
+    choices: [
+      "Starting from 1",
+      "Starting from 0",
+      "Starting from -1",
+      "Arrays don't use indexes"
+    ],
     correctIndex: 1,
   ),
   Question(
-    prompt: "When wiring an LCD to a microcontroller, why does pin configuration matter?",
+    prompt:
+        "When wiring an LCD to a microcontroller, why does pin configuration matter?",
     choices: [
       "It doesn't matter as long as it's plugged in",
       "The code must match the actual pins used, or the display won't work correctly",
@@ -279,17 +311,20 @@ const List<Question> finalsQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which usability metric measures how quickly users can complete a task?",
+    prompt:
+        "Which usability metric measures how quickly users can complete a task?",
     choices: ["Satisfaction", "Efficiency", "Error rate", "Learnability only"],
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which usability metric tracks how often users make mistakes while using a system?",
+    prompt:
+        "Which usability metric tracks how often users make mistakes while using a system?",
     choices: ["Efficiency", "Error rate", "Satisfaction", "Aesthetics"],
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which usability metric measures how happy users are with a system?",
+    prompt:
+        "Which usability metric measures how happy users are with a system?",
     choices: ["Error rate", "Satisfaction", "Efficiency", "Speed"],
     correctIndex: 1,
   ),
@@ -304,7 +339,8 @@ const List<Question> finalsQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which of the following is an example of a Content Management System (CMS)?",
+    prompt:
+        "Which of the following is an example of a Content Management System (CMS)?",
     choices: ["Arduino IDE", "WordPress", "Android Studio", "Flutter"],
     correctIndex: 1,
   ),
@@ -329,7 +365,8 @@ const List<Question> finalsQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "\"Fragmentation\" is a common mobile development challenge because:",
+    prompt:
+        "\"Fragmentation\" is a common mobile development challenge because:",
     choices: [
       "Every phone runs the exact same software",
       "Devices vary widely in screen size, OS version, and hardware",
@@ -340,11 +377,17 @@ const List<Question> finalsQuestions = [
   ),
   Question(
     prompt: "Flutter is best described as which mobile development approach?",
-    choices: ["Purely native (per platform)", "Cross-platform (one codebase, multiple platforms)", "Web-only", "Hardware-only"],
+    choices: [
+      "Purely native (per platform)",
+      "Cross-platform (one codebase, multiple platforms)",
+      "Web-only",
+      "Hardware-only"
+    ],
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which of the following is a correct step when building a mobile app?",
+    prompt:
+        "Which of the following is a correct step when building a mobile app?",
     choices: [
       "Skip planning and go straight to publishing",
       "Plan, design, develop, test, then deploy",
@@ -394,7 +437,8 @@ const List<Question> finalsQuestions = [
     correctIndex: 1,
   ),
   Question(
-    prompt: "Which best describes the \"hybrid\" approach to mobile development?",
+    prompt:
+        "Which best describes the \"hybrid\" approach to mobile development?",
     choices: [
       "Building two completely separate native apps",
       "Using web technologies wrapped in a native container to run on multiple platforms",

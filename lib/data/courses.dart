@@ -12,8 +12,7 @@ const List<Course> courses = [
     id: trackCourseId,
     title: 'ITE 013 — Application Development & Emerging Technologies',
     instructorName: 'the Instructor',
-    blurb:
-        'Flutter & Dart, app planning, variables/loops/arrays, '
+    blurb: 'Flutter & Dart, app planning, variables/loops/arrays, '
         'Human-Computer Interaction, Arduino, and web & mobile development.',
   ),
 ];
