@@ -50,7 +50,6 @@ class TileMapComponent extends PositionComponent {
 
   // These are the tile IDs marked as collidable in the old Java TileManager.
   static const Set<int> _collisionTileIds = {
-    19,
     20,
     21,
     22,

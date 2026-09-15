@@ -31,9 +31,9 @@ class NearbyTarget {
 /// through the `ValueNotifier`s below, and only when something actually
 /// changes — never every frame.
 class AcademiaHeightsGame extends FlameGame {
-  // Start in the open strip at the bottom centre of the imported map.
-  static const int _oldPlayerColumn = 20;
-  static const int _oldPlayerRow = 47;
+  // Start at the original Java spawn on the beige floor tiles.
+  static const int _oldPlayerColumn = 14;
+  static const int _oldPlayerRow = 44;
 
   AcademiaHeightsGame({
     required this.courseId,

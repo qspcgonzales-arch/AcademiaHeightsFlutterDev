@@ -11,6 +11,7 @@ analyzer:
   exclude:
     - build/**
     - android/**
+    - files/**
 
 linter:
   rules:
