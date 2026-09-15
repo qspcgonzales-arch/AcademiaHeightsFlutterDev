@@ -144,10 +144,7 @@ class AcademiaHeightsGame extends FlameGame {
   // The old Java positions were top-left coordinates. Flame uses centered
   // components, so move each imported position to the center of its tile.
   Vector2 _oldWorldPosition(int column, int row) {
-    return Vector2(
-      AppTheme.tileSize * (column + 0.5),
-      AppTheme.tileSize * (row + 0.5),
-    );
+    return tileCenter(column, row);
   }
 
   void _onBookCollected(CollectibleBook book) {

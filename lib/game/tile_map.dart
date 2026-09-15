@@ -264,3 +264,13 @@ class TileMapComponent extends PositionComponent {
     }
   }
 }
+
+/// The pixel position of the center of tile ([column], [row]). Use this for
+/// anything placed by tile coordinates because centered components expect a
+/// center point, not a tile's top-left corner.
+Vector2 tileCenter(int column, int row) {
+  return Vector2(
+    (column + 0.5) * AppTheme.tileSize,
+    (row + 0.5) * AppTheme.tileSize,
+  );
+}
