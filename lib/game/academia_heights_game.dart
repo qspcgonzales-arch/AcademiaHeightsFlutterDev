@@ -64,7 +64,7 @@ class AcademiaHeightsGame extends FlameGame {
   @override
   Future<void> onLoad() async {
     _map = await TileMapComponent.fromOldProject();
-    await add(_map);
+    await world.add(_map);
 
     final JoystickComponent joystick = JoystickComponent(
       knob: CircleComponent(
@@ -84,13 +84,13 @@ class AcademiaHeightsGame extends FlameGame {
       map: _map,
       spawn: _oldWorldPosition(_oldPlayerColumn, _oldPlayerRow),
     );
-    await add(_player);
+    await world.add(_player);
 
     // Keep the player at the exact center of the screen. The old map is
     // allowed to move beyond the viewport near its edges.
     camera.viewfinder.anchor = Anchor.center;
     camera.viewfinder.zoom = 1.0;
-    camera.viewfinder.position = _player.position.clone();
+    camera.follow(_player);
 
     _npcs = [
       NpcComponent(
@@ -117,7 +117,7 @@ class AcademiaHeightsGame extends FlameGame {
     ];
     _instructor = _npcs[2];
     for (final NpcComponent npc in _npcs) {
-      await add(npc);
+      await world.add(npc);
     }
 
     // These positions are the six book positions from the old Java project.
@@ -137,7 +137,7 @@ class AcademiaHeightsGame extends FlameGame {
         position: bookPositions[i],
         onCollected: _onBookCollected,
       );
-      await add(book);
+      await world.add(book);
     }
   }
 
@@ -154,8 +154,6 @@ class AcademiaHeightsGame extends FlameGame {
   @override
   void update(double dt) {
     super.update(dt);
-    // Assign after the player updates so movement is reflected immediately.
-    camera.viewfinder.position = _player.position.clone();
     _refreshNearby();
   }
 
@@ -164,7 +162,7 @@ class AcademiaHeightsGame extends FlameGame {
     final Vector2 playerPosition = _player.position;
 
     // Books take priority over the instructor.
-    for (final Component child in children) {
+    for (final Component child in world.children) {
       if (child is CollectibleBook && child.isPlayerInRange(playerPosition)) {
         _setNearby(NearbyTarget.book(child));
         return;

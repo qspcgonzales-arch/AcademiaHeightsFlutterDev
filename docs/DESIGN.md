@@ -106,7 +106,7 @@ Questions quiz the player on the course's own topics:
       navigation between stub screens.
 - [x] **Quiz bank:** full Prelim/Midterm/Finals questions in
       `lib/data/questions_data.dart` (`docs/quiz_bank.md` is the readable copy).
-- [~] **M1 — Core gameplay (Flame):** tile map render + collision, player
+- [x] **M1 — Core gameplay (Flame):** tile map render + collision, player
   component, virtual joystick, and gameplay HUD are implemented. Camera
   follow and final tile art remain.
 - [x] **M2 — Interaction:** NPC components, tap-to-interact, dialogue box,
