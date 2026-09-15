@@ -109,12 +109,12 @@ Questions quiz the player on the course's own topics:
 - [~] **M1 — Core gameplay (Flame):** tile map render + collision, player
   component, virtual joystick, and gameplay HUD are implemented. Camera
   follow and final tile art remain.
-- [ ] **M2 — Interaction:** NPC components, tap-to-interact, dialogue box,
+- [x] **M2 — Interaction:** NPC components, tap-to-interact, dialogue box,
       collectible books, decision prompt.
-- [ ] **M3 — Exam system:** wire the banks into the exam screen with a
+- [x] **M3 — Exam system:** wire the banks into the exam screen with a
       per-question timer, scoring, result screen, EXP/level. (`Question` model
       and the banks already exist.)
-- [ ] **M4 — Progression & persistence:** locked Prelim→Midterm→Finals,
+- [x] **M4 — Progression & persistence:** locked Prelim→Midterm→Finals,
       progress tracker, certificate, `SaveService` + `LeaderboardService`
       on `shared_preferences`, Save/Load screen, auto-save.
 - [ ] **M5 — Polish:** audio via `flame_audio`, transitions, settings wired
