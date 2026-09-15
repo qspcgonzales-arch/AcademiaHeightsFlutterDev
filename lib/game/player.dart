@@ -18,6 +18,7 @@ class PlayerComponent extends PositionComponent {
           position: spawn,
           size: Vector2.all(AppTheme.tileSize * 0.9),
           anchor: Anchor.center,
+          priority: 100,
         );
 
   final JoystickComponent joystick;

@@ -19,40 +19,42 @@ class MainMenuScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 360),
             child: Padding(
               padding: const EdgeInsets.all(AppTheme.gapL),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Academia Heights',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: AppTheme.gapXl),
-                  FilledButton(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(Routes.newGame),
-                    child: const Text('New Game'),
-                  ),
-                  const SizedBox(height: AppTheme.gapM),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(Routes.loadGame),
-                    child: const Text('Load Game'),
-                  ),
-                  const SizedBox(height: AppTheme.gapM),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(Routes.leaderboard),
-                    child: const Text('Leaderboard'),
-                  ),
-                  const SizedBox(height: AppTheme.gapM),
-                  TextButton(
-                    onPressed: () {
-                      context.read<GameState>().endRun();
-                      SystemNavigator.pop();
-                    },
-                    child: const Text('Quit'),
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Academia Heights',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: AppTheme.gapXl),
+                    FilledButton(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed(Routes.newGame),
+                      child: const Text('New Game'),
+                    ),
+                    const SizedBox(height: AppTheme.gapM),
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed(Routes.loadGame),
+                      child: const Text('Load Game'),
+                    ),
+                    const SizedBox(height: AppTheme.gapM),
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          Navigator.of(context).pushNamed(Routes.leaderboard),
+                      child: const Text('Leaderboard'),
+                    ),
+                    const SizedBox(height: AppTheme.gapM),
+                    TextButton(
+                      onPressed: () {
+                        context.read<GameState>().endRun();
+                        SystemNavigator.pop();
+                      },
+                      child: const Text('Quit'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

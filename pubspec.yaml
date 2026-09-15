@@ -41,6 +41,7 @@ flutter:
     - assets/images/tiles/
     - assets/audio/
     - assets/tiles/
+    - AcademiaHeightsGame(FINALS)2/res/maps/
 
   # Pixel-art font placeholder. Drop a .ttf into assets/fonts/ and
   # uncomment to use it across the app.

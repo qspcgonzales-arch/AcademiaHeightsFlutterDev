@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,12 @@ import 'state/settings_controller.dart';
 Future<void> main() async {
   // Required before using shared_preferences at startup.
   WidgetsFlutterBinding.ensureInitialized();
+
+  // The old Java game used a wide 16 by 12 tile viewport.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
 
   // One shared_preferences instance, shared by every service.
   final SharedPreferences prefs = await SharedPreferences.getInstance();

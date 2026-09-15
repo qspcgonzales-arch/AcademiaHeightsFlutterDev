@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 
@@ -12,25 +13,203 @@ import '../theme/app_theme.dart';
 class TileMapComponent extends PositionComponent {
   TileMapComponent({required this.grid}) : super(size: _pixelSize(grid));
 
+  /// Loads the original 50 by 50 map used by the Java project.
+  static Future<TileMapComponent> fromOldProject() async {
+    final String mapText = await rootBundle.loadString(
+      'AcademiaHeightsGame(FINALS)2/res/maps/worldV3.txt',
+    );
+    final List<List<int>> grid = [];
+    final List<String> lines = mapText.split('\n');
+
+    for (final String line in lines) {
+      final String trimmedLine = line.trim();
+      if (trimmedLine.isEmpty) continue;
+
+      final List<String> values = trimmedLine.split(RegExp(r'\s+'));
+      final List<int> row = [];
+      for (final String value in values) {
+        row.add(int.parse(value));
+      }
+      grid.add(row);
+    }
+
+    if (grid.length != 50 || grid[0].length != 50) {
+      throw StateError('The old project map must contain 50 rows of 50 tiles.');
+    }
+
+    return TileMapComponent(grid: grid);
+  }
+
   final List<List<int>> grid;
 
   int get rows => grid.length;
   int get columns => grid[0].length;
   double get tileSize => AppTheme.tileSize;
 
-  // The main ground and wall tiles. The old project also contains campus
-  // props like trees, stones, and seating, which we render as decorations.
-  final Map<String, Sprite> _sprites = {};
-  late final List<_MapDecoration> _decorations = [
-    const _MapDecoration(row: 2, column: 2, assetName: 'tree00', size: 1.15),
-    const _MapDecoration(row: 2, column: 16, assetName: 'tree00', size: 1.1),
-    const _MapDecoration(row: 8, column: 4, assetName: 'bush', size: 1.0),
-    const _MapDecoration(row: 9, column: 12, assetName: 'stone', size: 1.0),
-    const _MapDecoration(row: 7, column: 17, assetName: 'ChairD', size: 0.9),
-    const _MapDecoration(row: 10, column: 7, assetName: 'CabinetR', size: 0.9),
-    const _MapDecoration(row: 10, column: 14, assetName: 'tree00', size: 1.2),
-    const _MapDecoration(row: 11, column: 18, assetName: 'bush', size: 1.0),
-  ];
+  final Map<int, Sprite> _sprites = {};
+
+  // These are the tile IDs marked as collidable in the old Java TileManager.
+  static const Set<int> _collisionTileIds = {
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+  };
+
+  static const Map<int, String> _tileNames = {
+    0: 'grass',
+    1: 'grass',
+    2: 'grass',
+    3: 'grass',
+    4: 'grass',
+    5: 'grass',
+    6: 'grass',
+    7: 'grass',
+    8: 'grass',
+    9: 'grass',
+    10: 'grass',
+    11: 'grassUL',
+    12: 'grassU',
+    13: 'grassUR',
+    14: 'grassL',
+    15: 'grassR',
+    16: 'grassBL',
+    17: 'grassBR',
+    18: 'grassUL',
+    19: 'Wall',
+    20: 'wallUL',
+    21: 'WallU',
+    22: 'WallUR',
+    23: 'WallL',
+    24: 'WallR',
+    25: 'WallBL',
+    26: 'WallB',
+    27: 'WallBR',
+    28: 'Stone',
+    29: 'StoneUL',
+    30: 'StoneU',
+    31: 'StoneUR',
+    32: 'StoneL',
+    33: 'StoneR',
+    34: 'StoneBL',
+    35: 'StoneB',
+    36: 'StoneBR',
+    37: 'Break',
+    38: 'BreakUL',
+    39: 'BreakU',
+    40: 'BreakUR',
+    41: 'BreakL',
+    42: 'BreakR',
+    43: 'BreakBL',
+    44: 'BreakB',
+    45: 'BreakBR',
+    46: 'treeL',
+    47: 'treeLR',
+    48: 'treeLV',
+    49: 'treeS',
+    50: 'treeSR',
+    51: 'treeSV',
+    52: 'tree00',
+    53: 'tree01',
+    54: 'tree02',
+    55: 'tree03',
+    56: 'tree04',
+    57: 'tree05',
+    58: 'tree06',
+    59: 'tree07',
+    60: 'tree08',
+    61: 'tri-tree',
+    62: 'cir-tree',
+    63: 'ChairD',
+    64: 'ChairU',
+    65: 'ChairL',
+    66: 'ChairR',
+    67: 'CabinetD',
+    68: 'CabinetR',
+    69: 'CabinetL',
+    70: 'RoundTU',
+    71: 'RoundTD',
+    72: 'RoundTL',
+    73: 'RoundTR',
+    74: 'BoxTU',
+    75: 'BoxTD',
+    76: 'BoxTL',
+    77: 'BoxTR',
+    78: 'BlueChairUL',
+    79: 'BlueChairUR',
+    80: 'BlueChairDL',
+    81: 'BlueChairDR',
+    82: 'BlueChairL',
+    83: 'BlueChairR',
+    84: 'bush',
+    85: 'BooksD',
+    86: 'BooksL',
+    87: 'BooksR',
+    88: 'BooksU',
+  };
 
   /// Total map size in pixels, from the number of rows and columns.
   static Vector2 _pixelSize(List<List<int>> grid) {
@@ -42,20 +221,16 @@ class TileMapComponent extends PositionComponent {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    _sprites['grass'] = await Sprite.load('tiles/grass.png');
-    _sprites['wall'] = await Sprite.load('tiles/Wall.png');
-    _sprites['tree00'] = await Sprite.load('tiles/tree00.png');
-    _sprites['bush'] = await Sprite.load('tiles/bush.png');
-    _sprites['stone'] = await Sprite.load('tiles/Stone.png');
-    _sprites['ChairD'] = await Sprite.load('tiles/ChairD.png');
-    _sprites['CabinetR'] = await Sprite.load('tiles/CabinetR.png');
+    for (final MapEntry<int, String> entry in _tileNames.entries) {
+      _sprites[entry.key] = await Sprite.load('tiles/${entry.value}.png');
+    }
   }
 
   /// True if the cell is a wall, or outside the map.
   bool isBlockedCell(int row, int column) {
     if (row < 0 || row >= rows) return true;
     if (column < 0 || column >= columns) return true;
-    return grid[row][column] != 0;
+    return _collisionTileIds.contains(grid[row][column]);
   }
 
   /// True if a box (given by its top-left corner and size, in pixels)
@@ -79,8 +254,7 @@ class TileMapComponent extends PositionComponent {
     for (int row = 0; row < rows; row++) {
       for (int column = 0; column < columns; column++) {
         final Vector2 cellPosition = Vector2(column * tileSize, row * tileSize);
-        final Sprite tileSprite =
-            grid[row][column] == 0 ? _sprites['grass']! : _sprites['wall']!;
+        final Sprite tileSprite = _sprites[grid[row][column]]!;
         tileSprite.render(
           canvas,
           position: cellPosition,
@@ -88,66 +262,5 @@ class TileMapComponent extends PositionComponent {
         );
       }
     }
-
-    for (final decoration in _decorations) {
-      final Sprite? sprite = _sprites[decoration.assetName];
-      if (sprite == null) continue;
-
-      final Vector2 position = Vector2(
-        decoration.column * tileSize + (tileSize / 2),
-        decoration.row * tileSize + (tileSize / 2),
-      );
-
-      sprite.render(
-        canvas,
-        position: position,
-        size: Vector2.all(tileSize * decoration.size),
-        anchor: Anchor.center,
-      );
-    }
   }
-}
-
-class _MapDecoration {
-  const _MapDecoration({
-    required this.row,
-    required this.column,
-    required this.assetName,
-    required this.size,
-  });
-
-  final int row;
-  final int column;
-  final String assetName;
-  final double size;
-}
-
-/// A small hand-made placeholder map: a wall around the edge plus two inner
-/// walls. Real maps come from Tiled in milestone M1.
-List<List<int>> demoGrid() {
-  const int rows = 14;
-  const int columns = 20;
-
-  final List<List<int>> grid = [];
-  for (int row = 0; row < rows; row++) {
-    final List<int> rowCells = [];
-    for (int column = 0; column < columns; column++) {
-      rowCells.add(_demoCell(row, column, rows, columns));
-    }
-    grid.add(rowCells);
-  }
-  return grid;
-}
-
-/// 1 = wall, 0 = walkable, for the demo map.
-int _demoCell(int row, int column, int rows, int columns) {
-  final bool onEdge =
-      row == 0 || column == 0 || row == rows - 1 || column == columns - 1;
-  if (onEdge) return 1;
-
-  final bool onHorizontalWall = row == 5 && column >= 6 && column <= 12;
-  final bool onVerticalWall = column == 14 && row >= 3 && row <= 9;
-  if (onHorizontalWall || onVerticalWall) return 1;
-
-  return 0;
 }

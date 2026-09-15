@@ -31,6 +31,10 @@ class NearbyTarget {
 /// through the `ValueNotifier`s below, and only when something actually
 /// changes — never every frame.
 class AcademiaHeightsGame extends FlameGame {
+  // Start in the open strip at the bottom centre of the imported map.
+  static const int _oldPlayerColumn = 20;
+  static const int _oldPlayerRow = 47;
+
   AcademiaHeightsGame({
     required this.courseId,
     required this.instructorName,
@@ -52,13 +56,14 @@ class AcademiaHeightsGame extends FlameGame {
   late TileMapComponent _map;
   late PlayerComponent _player;
   late NpcComponent _instructor;
+  late List<NpcComponent> _npcs;
 
   @override
   Color backgroundColor() => AppTheme.ink;
 
   @override
   Future<void> onLoad() async {
-    _map = TileMapComponent(grid: demoGrid());
+    _map = await TileMapComponent.fromOldProject();
     await add(_map);
 
     final JoystickComponent joystick = JoystickComponent(
@@ -77,31 +82,72 @@ class AcademiaHeightsGame extends FlameGame {
     _player = PlayerComponent(
       joystick: joystick,
       map: _map,
-      spawn: Vector2(AppTheme.tileSize * 3, AppTheme.tileSize * 3),
+      spawn: _oldWorldPosition(_oldPlayerColumn, _oldPlayerRow),
     );
     await add(_player);
 
-    _instructor = NpcComponent(
-      id: '$courseId.instructor',
-      displayName: instructorName,
-      position: Vector2(AppTheme.tileSize * 16, AppTheme.tileSize * 10),
-      isInstructor: true,
-    );
-    await add(_instructor);
+    // Keep the player at the exact center of the screen. The old map is
+    // allowed to move beyond the viewport near its edges.
+    camera.viewfinder.anchor = Anchor.center;
+    camera.viewfinder.zoom = 1.0;
+    camera.viewfinder.position = _player.position.clone();
 
-    // Drop three books around the map.
-    for (int i = 0; i < 3; i++) {
+    _npcs = [
+      NpcComponent(
+        id: '$courseId.teacher1',
+        displayName: 'Teacher 1',
+        position: _oldWorldPosition(9, 26),
+      ),
+      NpcComponent(
+        id: '$courseId.teacher2',
+        displayName: 'Teacher 2',
+        position: _oldWorldPosition(41, 26),
+      ),
+      NpcComponent(
+        id: '$courseId.instructor',
+        displayName: instructorName,
+        position: _oldWorldPosition(25, 9),
+        isInstructor: true,
+      ),
+      NpcComponent(
+        id: '$courseId.principal',
+        displayName: 'Principal',
+        position: _oldWorldPosition(24, 41),
+      ),
+    ];
+    _instructor = _npcs[2];
+    for (final NpcComponent npc in _npcs) {
+      await add(npc);
+    }
+
+    // These positions are the six book positions from the old Java project.
+    final List<Vector2> bookPositions = [
+      _oldWorldPosition(15, 31),
+      _oldWorldPosition(13, 23),
+      _oldWorldPosition(37, 22),
+      _oldWorldPosition(39, 31),
+      _oldWorldPosition(23, 12),
+      _oldWorldPosition(29, 12),
+    ];
+
+    for (int i = 0; i < bookPositions.length; i++) {
       final CollectibleBook book = CollectibleBook(
         id: '$courseId.book.$i',
         topic: 'topic-$i',
-        position: Vector2(
-          AppTheme.tileSize * (5 + i * 3),
-          AppTheme.tileSize * (8 - i),
-        ),
+        position: bookPositions[i],
         onCollected: _onBookCollected,
       );
       await add(book);
     }
+  }
+
+  // The old Java positions were top-left coordinates. Flame uses centered
+  // components, so move each imported position to the center of its tile.
+  Vector2 _oldWorldPosition(int column, int row) {
+    return Vector2(
+      AppTheme.tileSize * (column + 0.5),
+      AppTheme.tileSize * (row + 0.5),
+    );
   }
 
   void _onBookCollected(CollectibleBook book) {
@@ -111,6 +157,8 @@ class AcademiaHeightsGame extends FlameGame {
   @override
   void update(double dt) {
     super.update(dt);
+    // Assign after the player updates so movement is reflected immediately.
+    camera.viewfinder.position = _player.position.clone();
     _refreshNearby();
   }
 
