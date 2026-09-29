@@ -170,12 +170,17 @@ class _GameplayScreenState extends State<GameplayScreen> {
     // It was a book pickup — nothing more to do.
     if (npc == null) return;
 
-    if (!npc.isInstructor) {
-      await _showLine(npc.displayName, 'Good luck with your studies!');
-      return;
-    }
+    game.setNpcMovementPaused(true);
+    try {
+      if (!npc.isInstructor) {
+        await _showLine(npc.displayName, 'Good luck with your studies!');
+        return;
+      }
 
-    await _showInstructorFlow(state);
+      await _showInstructorFlow(state);
+    } finally {
+      game.setNpcMovementPaused(false);
+    }
   }
 
   Future<void> _showLine(String speaker, String line) {

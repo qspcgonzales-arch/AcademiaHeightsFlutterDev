@@ -107,10 +107,11 @@ Questions quiz the player on the course's own topics:
 - [x] **Quiz bank:** full Prelim/Midterm/Finals questions in
       `lib/data/questions_data.dart` (`docs/quiz_bank.md` is the readable copy).
 - [x] **M1 — Core gameplay (Flame):** tile map render + collision, player
-  component, virtual joystick, and gameplay HUD are implemented. Camera
-  follow and final tile art remain.
+  component, virtual joystick, gameplay HUD, and camera follow are implemented.
+  Final tile art remains.
 - [x] **M2 — Interaction:** NPC components, tap-to-interact, dialogue box,
-      collectible books, decision prompt.
+      collectible books, decision prompt, classroom students, and key-NPC
+      waypoint patrols.
 - [x] **M3 — Exam system:** wire the banks into the exam screen with a
       per-question timer, scoring, result screen, EXP/level. (`Question` model
       and the banks already exist.)

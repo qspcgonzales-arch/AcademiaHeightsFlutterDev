@@ -27,14 +27,20 @@
   form scroll when the keyboard reduces available height.
 - Replace the legacy pixel-character logo mark with a scalable school crest,
   including the gameplay loading state.
+- Add six non-interactive classroom students and collision-aware waypoint
+  patrols for teachers and the principal; pause their movement during dialogue.
+- Reuse the existing teacher portraits for ambient students until student art
+  is available.
 - Configure release signing from local, Git-ignored `android/key.properties`
   and document Windows keystore setup and release APK steps in `docs/SETUP.md`.
 - Ignore generated Android build output and add short-landscape layout
   regression tests.
-- Validate with `flutter analyze` (no issues) and `flutter test` (17 passed).
+- Validate with `flutter analyze` (no issues) and `flutter test` (22 passed).
 
-Changes in this entry were committed and pushed on
-`feature/core-gameplay-baseline` as `9ee2e04`.
+The initial September 30 changes were committed and pushed on
+`feature/core-gameplay-baseline` as `9ee2e04`. NPC patrol and classroom
+population work was added later that day.
 
-The signed APK in `build/` predates the September 30 UI changes and needs to
-be rebuilt before distribution. No APK has been uploaded to Google Drive.
+The signed APK in `build/` predates the September 30 UI and NPC changes and
+needs to be rebuilt before distribution. No APK has been uploaded to Google
+Drive.

@@ -102,22 +102,85 @@ class AcademiaHeightsGame extends FlameGame {
         id: '$courseId.teacher1',
         displayName: 'Teacher 1',
         position: _oldWorldPosition(9, 26),
+        map: _map,
+        patrolWaypoints: [
+          _oldWorldPosition(9, 26),
+          _oldWorldPosition(12, 26),
+        ],
       ),
       NpcComponent(
         id: '$courseId.teacher2',
         displayName: 'Teacher 2',
         position: _oldWorldPosition(41, 26),
+        map: _map,
+        patrolWaypoints: [
+          _oldWorldPosition(41, 26),
+          _oldWorldPosition(38, 26),
+        ],
       ),
       NpcComponent(
         id: '$courseId.instructor',
         displayName: instructorName,
         position: _oldWorldPosition(25, 9),
         isInstructor: true,
+        map: _map,
+        patrolWaypoints: [
+          _oldWorldPosition(25, 9),
+          _oldWorldPosition(29, 9),
+        ],
       ),
       NpcComponent(
         id: '$courseId.principal',
         displayName: 'Principal',
         position: _oldWorldPosition(24, 41),
+        map: _map,
+        patrolWaypoints: [
+          _oldWorldPosition(24, 41),
+          _oldWorldPosition(27, 41),
+        ],
+      ),
+      // Reuse the available teacher portraits until student art is added.
+      NpcComponent(
+        id: '$courseId.student.1',
+        displayName: 'Student',
+        position: _oldWorldPosition(9, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher1.png',
+      ),
+      NpcComponent(
+        id: '$courseId.student.2',
+        displayName: 'Student',
+        position: _oldWorldPosition(12, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher2.png',
+      ),
+      NpcComponent(
+        id: '$courseId.student.3',
+        displayName: 'Student',
+        position: _oldWorldPosition(16, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher3.png',
+      ),
+      NpcComponent(
+        id: '$courseId.student.4',
+        displayName: 'Student',
+        position: _oldWorldPosition(36, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher1.png',
+      ),
+      NpcComponent(
+        id: '$courseId.student.5',
+        displayName: 'Student',
+        position: _oldWorldPosition(38, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher2.png',
+      ),
+      NpcComponent(
+        id: '$courseId.student.6',
+        displayName: 'Student',
+        position: _oldWorldPosition(40, 22),
+        isInteractable: false,
+        portraitFile: 'Teacher3.png',
       ),
     ];
     _player.npcs = _npcs; // let the player collide with NPCs
@@ -156,6 +219,12 @@ class AcademiaHeightsGame extends FlameGame {
     booksCollected.value = booksCollected.value + 1;
   }
 
+  void setNpcMovementPaused(bool paused) {
+    for (final NpcComponent npc in _npcs) {
+      npc.movementPaused = paused;
+    }
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -176,6 +245,7 @@ class AcademiaHeightsGame extends FlameGame {
 
     // Any NPC can be talked to, not just the instructor.
     for (final NpcComponent npc in _npcs) {
+      if (!npc.isInteractable) continue;
       if (npc.isPlayerInRange(playerPosition)) {
         _setNearby(NearbyTarget.npc(npc));
         return;
