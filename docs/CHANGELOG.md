@@ -1,36 +1,40 @@
 # Changelog
 
-## 2026-09-30 - Unreleased
+## 2026-09-08 - Project foundation
 
-These changes are present in the local working tree and have not yet been
-committed or pushed.
+- Scaffold the Flutter and Flame project structure and establish the
+  single-track ITE 013 exam plan.
+- Add the Prelim, Midterm, and Finals question banks and shuffle answer
+  choices on each attempt.
+- Rewrite the scaffold in beginner-readable Dart and add setup and Copilot
+  project instructions.
 
-### Gameplay and exams
+## 2026-09-15 - Core gameplay and progression
 
-- Load and render the legacy 50-by-50 campus map with tile-based collision.
-- Follow and zoom the camera around the player; animate movement and prevent
-  the player from walking through walls or NPCs.
-- Add instructor and other NPC interactions, nearby-book pickup, and a
-  contextual interaction button.
-- Shuffle exam answer choices, show timed questions, and connect exam attempts
-  to scoring, EXP, and progression.
+- Add the Android scaffold, player movement, exam-flow foundations, and core
+  gameplay assets.
+- Import and render the legacy 50-by-50 campus map, with landscape gameplay,
+  tile collision, and the campus art pass.
+- Add player walk animations, NPCs, collectible books, and centered tile-based
+  spawn positions; fix camera following and player placement.
+- Mark M2-M4 implemented in the design checklist for interactions, exams,
+  progression, and persistence.
 
-### Interface and branding
+## 2026-09-30 - Gameplay polish and release setup
 
 - Use a compact 48-by-48 contextual talk or pickup button on the gameplay HUD.
-- Adapt the main menu spacing and logo size for short landscape screens.
-- Make the New Game form scroll when the keyboard reduces available height.
+- Adapt main-menu spacing for short landscape screens and make the New Game
+  form scroll when the keyboard reduces available height.
 - Replace the legacy pixel-character logo mark with a scalable school crest,
   including the gameplay loading state.
-
-### Android distribution and validation
-
 - Configure release signing from local, Git-ignored `android/key.properties`
-  and fail release builds with a clear message when signing is not configured.
-- Document Windows keystore setup, release APK build, and key-protection steps
-  in `docs/SETUP.md`; ignore generated Android build output.
-- Add short-landscape layout regression tests. The latest validation passed
-  `flutter analyze` with no issues and all 17 tests.
+  and document Windows keystore setup and release APK steps in `docs/SETUP.md`.
+- Ignore generated Android build output and add short-landscape layout
+  regression tests.
+- Validate with `flutter analyze` (no issues) and `flutter test` (17 passed).
 
-The signed APK currently in `build/` predates these latest UI changes and must
+Changes in this entry were committed and pushed on
+`feature/core-gameplay-baseline` as `9ee2e04`.
+
+The signed APK in `build/` predates the September 30 UI changes and needs to
 be rebuilt before distribution. No APK has been uploaded to Google Drive.
