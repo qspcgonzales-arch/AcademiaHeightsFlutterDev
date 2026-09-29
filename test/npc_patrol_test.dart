@@ -43,6 +43,24 @@ void main() {
     expect(npc.position.y, 72);
   });
 
+  test('patrol waits when another actor occupies the next position', () {
+    final TileMapComponent map = TileMapComponent(grid: _openGrid());
+    final NpcComponent npc = NpcComponent(
+      id: 'teacher.test',
+      displayName: 'Teacher',
+      position: Vector2(72, 72),
+      map: map,
+      patrolWaypoints: [Vector2(72, 72), Vector2(168, 72)],
+      patrolSpeed: 36,
+    );
+    npc.isBlockedByActor = (Vector2 nextPosition) => true;
+
+    npc.update(1);
+
+    expect(npc.position.x, 72);
+    expect(npc.position.y, 72);
+  });
+
   test('patrol stops before entering a blocked map cell', () {
     final List<List<int>> grid = _openGrid();
     grid[1][2] = 20;

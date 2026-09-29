@@ -42,6 +42,7 @@ class NpcComponent extends PositionComponent {
   final double patrolSpeed;
   final double pauseAtWaypoint;
   final String? portraitFile;
+  bool Function(Vector2 nextPosition)? isBlockedByActor;
 
   int _waypointIndex = 0;
   int _waypointDirection = 1;
@@ -89,6 +90,12 @@ class NpcComponent extends PositionComponent {
       _waypointDirection = -_waypointDirection;
       _moveToNextWaypoint();
       _pauseRemaining = pauseAtWaypoint;
+      return;
+    }
+
+    final bool Function(Vector2 nextPosition)? actorCollisionCheck =
+        isBlockedByActor;
+    if (actorCollisionCheck != null && actorCollisionCheck(nextPosition)) {
       return;
     }
 

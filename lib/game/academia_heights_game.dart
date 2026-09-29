@@ -185,6 +185,9 @@ class AcademiaHeightsGame extends FlameGame {
     ];
     _player.npcs = _npcs; // let the player collide with NPCs
     for (final NpcComponent npc in _npcs) {
+      npc.isBlockedByActor = (Vector2 nextPosition) {
+        return _isBlockedByAnotherActor(npc, nextPosition);
+      };
       await world.add(npc);
     }
 
@@ -217,6 +220,28 @@ class AcademiaHeightsGame extends FlameGame {
 
   void _onBookCollected(CollectibleBook book) {
     booksCollected.value = booksCollected.value + 1;
+  }
+
+  bool _isBlockedByAnotherActor(
+    NpcComponent movingNpc,
+    Vector2 nextPosition,
+  ) {
+    final double playerMinimumDistance =
+        (movingNpc.size.x + _player.size.x) / 2;
+    if (nextPosition.distanceTo(_player.position) < playerMinimumDistance) {
+      return true;
+    }
+
+    for (final NpcComponent otherNpc in _npcs) {
+      if (otherNpc == movingNpc) continue;
+      final double npcMinimumDistance =
+          (movingNpc.size.x + otherNpc.size.x) / 2;
+      if (nextPosition.distanceTo(otherNpc.position) < npcMinimumDistance) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   void setNpcMovementPaused(bool paused) {

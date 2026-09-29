@@ -29,13 +29,17 @@
   including the gameplay loading state.
 - Add six non-interactive classroom students and collision-aware waypoint
   patrols for teachers and the principal; pause their movement during dialogue.
+- Stop patrolling NPCs from entering the player's or another NPC's space.
 - Reuse the existing teacher portraits for ambient students until student art
   is available.
 - Configure release signing from local, Git-ignored `android/key.properties`
   and document Windows keystore setup and release APK steps in `docs/SETUP.md`.
 - Ignore generated Android build output and add short-landscape layout
   regression tests.
-- Validate with `flutter analyze` (no issues) and `flutter test` (22 passed).
+- Validate with `flutter analyze` (no issues) and `flutter test` (23 passed).
+- Smoke-test the x86_64 debug build in the Android emulator: gameplay rendered,
+  the player reached the Principal, dialogue opened and closed, and the game
+  remained alive without a game-specific fatal error.
 
 The initial September 30 changes were committed and pushed on
 `feature/core-gameplay-baseline` as `9ee2e04`. NPC patrol and classroom
