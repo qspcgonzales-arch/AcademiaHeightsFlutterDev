@@ -41,30 +41,29 @@ class _NewGameScreenState extends State<NewGameScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('New Game')),
       body: SafeArea(
-        child: Padding(
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(AppTheme.gapL),
-          child: Column(
-            children: [
-              TextField(
-                controller: _nameController,
-                autofocus: true,
-                maxLength: AppTheme.maxPlayerNameLength,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Player name',
-                  hintText: 'Up to 16 characters',
-                ),
-                // Rebuild so the Start button enables/disables as they type.
-                onChanged: (text) => setState(() {}),
-                onSubmitted: (text) => _startGame(),
+          children: [
+            TextField(
+              controller: _nameController,
+              autofocus: true,
+              maxLength: AppTheme.maxPlayerNameLength,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Player name',
+                hintText: 'Up to 16 characters',
               ),
-              const SizedBox(height: AppTheme.gapM),
-              FilledButton(
-                onPressed: _nameIsEmpty ? null : _startGame,
-                child: const Text('Start Game'),
-              ),
-            ],
-          ),
+              // Rebuild so the Start button enables/disables as they type.
+              onChanged: (text) => setState(() {}),
+              onSubmitted: (text) => _startGame(),
+            ),
+            const SizedBox(height: AppTheme.gapM),
+            FilledButton(
+              onPressed: _nameIsEmpty ? null : _startGame,
+              child: const Text('Start Game'),
+            ),
+          ],
         ),
       ),
     );

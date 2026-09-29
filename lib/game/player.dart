@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'npc.dart';
 import 'tile_map.dart';
 
 /// The player character. The virtual joystick moves it, and walls in the
@@ -23,6 +24,10 @@ class PlayerComponent extends PositionComponent {
 
   final JoystickComponent joystick;
   final TileMapComponent map;
+
+  /// NPCs the player can't walk on top of. Set by the game after the NPCs
+  /// are created.
+  List<NpcComponent> npcs = [];
 
   /// Movement speed in pixels per second.
   double speed = 140;
@@ -95,15 +100,27 @@ class PlayerComponent extends PositionComponent {
     _frameIndex = _frameIndex == 0 ? 1 : 0;
   }
 
-  /// Moves by [step] unless that would put the player inside a wall.
+  /// Moves by [step] unless that would put the player inside a wall or NPC.
   void _tryMove(Vector2 step) {
     if (step.x == 0 && step.y == 0) return;
 
     final Vector2 nextPosition = position + step;
     final Vector2 nextTopLeft = nextPosition - (size / 2);
     if (map.collidesWithBox(nextTopLeft, size)) return;
+    if (_collidesWithNpc(nextPosition)) return;
 
     position = nextPosition;
+  }
+
+  /// True if moving to [nextPosition] would put the player's center closer
+  /// to an NPC than both of their solid radii allow.
+  bool _collidesWithNpc(Vector2 nextPosition) {
+    for (final NpcComponent npc in npcs) {
+      final double distance = nextPosition.distanceTo(npc.position);
+      final double minDistance = (size.x / 2) + npc.solidRadius;
+      if (distance < minDistance) return true;
+    }
+    return false;
   }
 
   @override

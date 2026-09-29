@@ -16,6 +16,7 @@ class NpcComponent extends PositionComponent {
           position: position,
           size: Vector2.all(AppTheme.tileSize * 0.9),
           anchor: Anchor.center,
+          priority: 50,
         );
 
   final String id;
@@ -24,6 +25,10 @@ class NpcComponent extends PositionComponent {
 
   /// How close (world pixels) the player must be to interact.
   double interactRadius = AppTheme.tileSize * 1.4;
+
+  /// How close (world pixels) the player's center may get before being
+  /// blocked, so the player can't stand on top of an NPC.
+  double get solidRadius => size.x / 2;
 
   Sprite? _portrait;
 

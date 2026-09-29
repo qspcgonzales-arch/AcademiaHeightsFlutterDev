@@ -16,6 +16,7 @@ class CollectibleBook extends PositionComponent {
           position: position,
           size: Vector2.all(AppTheme.tileSize * 0.5),
           anchor: Anchor.center,
+          priority: 25,
         );
 
   final String id;

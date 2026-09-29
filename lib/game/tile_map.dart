@@ -42,6 +42,13 @@ class TileMapComponent extends PositionComponent {
 
   final List<List<int>> grid;
 
+  /// Every tile image file this map can use, for preloading on the title
+  /// screen so gameplay doesn't stutter the first time it draws them.
+  static List<String> get allTileImagePaths {
+    final Set<String> uniqueNames = _tileNames.values.toSet();
+    return uniqueNames.map((name) => 'tiles/$name.png').toList();
+  }
+
   int get rows => grid.length;
   int get columns => grid[0].length;
   double get tileSize => AppTheme.tileSize;
@@ -220,8 +227,14 @@ class TileMapComponent extends PositionComponent {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    for (final MapEntry<int, String> entry in _tileNames.entries) {
-      _sprites[entry.key] = await Sprite.load('tiles/${entry.value}.png');
+    // Load every tile image at once instead of one at a time, so the map
+    // shows up faster.
+    final List<int> tileIds = _tileNames.keys.toList();
+    final List<Sprite> sprites = await Future.wait(
+      tileIds.map((id) => Sprite.load('tiles/${_tileNames[id]}.png')),
+    );
+    for (int i = 0; i < tileIds.length; i++) {
+      _sprites[tileIds[i]] = sprites[i];
     }
   }
 
@@ -250,8 +263,23 @@ class TileMapComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    for (int row = 0; row < rows; row++) {
-      for (int column = 0; column < columns; column++) {
+    // Only draw the tiles the camera can actually see (plus one tile of
+    // margin), instead of all 2,500 every frame — this is what was making
+    // the game feel sluggish, especially now that the camera is zoomed in.
+    final Rect visible = canvas.getLocalClipBounds();
+    final int firstColumn = (visible.left / tileSize).floor().clamp(
+          0,
+          columns - 1,
+        );
+    final int lastColumn = (visible.right / tileSize).ceil().clamp(
+          0,
+          columns - 1,
+        );
+    final int firstRow = (visible.top / tileSize).floor().clamp(0, rows - 1);
+    final int lastRow = (visible.bottom / tileSize).ceil().clamp(0, rows - 1);
+
+    for (int row = firstRow; row <= lastRow; row++) {
+      for (int column = firstColumn; column <= lastColumn; column++) {
         final Vector2 cellPosition = Vector2(column * tileSize, row * tileSize);
         final Sprite tileSprite = _sprites[grid[row][column]]!;
         tileSprite.render(

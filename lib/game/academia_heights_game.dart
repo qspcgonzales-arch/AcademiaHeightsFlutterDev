@@ -31,8 +31,8 @@ class NearbyTarget {
 /// through the `ValueNotifier`s below, and only when something actually
 /// changes — never every frame.
 class AcademiaHeightsGame extends FlameGame {
-  // Start at the original Java spawn on the beige floor tiles.
-  static const int _oldPlayerColumn = 14;
+  // Start near the bottom centre on the beige floor tiles.
+  static const int _oldPlayerColumn = 25;
   static const int _oldPlayerRow = 44;
 
   AcademiaHeightsGame({
@@ -55,7 +55,6 @@ class AcademiaHeightsGame extends FlameGame {
   // Filled in during onLoad(). "late" means "set once, before first use".
   late TileMapComponent _map;
   late PlayerComponent _player;
-  late NpcComponent _instructor;
   late List<NpcComponent> _npcs;
 
   @override
@@ -77,7 +76,11 @@ class AcademiaHeightsGame extends FlameGame {
       ),
       margin: const EdgeInsets.only(left: 32, bottom: 32),
     );
-    await add(joystick);
+    // The viewport is the camera's own screen-space layer, drawn after the
+    // world no matter what — so the joystick always stays on top and never
+    // scrolls, zooms, or gets covered by map tiles, NPCs, or books.
+    joystick.priority = 1000;
+    await camera.viewport.add(joystick);
 
     _player = PlayerComponent(
       joystick: joystick,
@@ -89,7 +92,9 @@ class AcademiaHeightsGame extends FlameGame {
     // Keep the player at the exact center of the screen. The old map is
     // allowed to move beyond the viewport near its edges.
     camera.viewfinder.anchor = Anchor.center;
-    camera.viewfinder.zoom = 1.0;
+    // Zoomed in closer than 1:1 so the character and nearby tiles read
+    // clearly on a phone screen instead of looking distant.
+    camera.viewfinder.zoom = 2.2;
     camera.follow(_player);
 
     _npcs = [
@@ -115,7 +120,7 @@ class AcademiaHeightsGame extends FlameGame {
         position: _oldWorldPosition(24, 41),
       ),
     ];
-    _instructor = _npcs[2];
+    _player.npcs = _npcs; // let the player collide with NPCs
     for (final NpcComponent npc in _npcs) {
       await world.add(npc);
     }
@@ -161,7 +166,7 @@ class AcademiaHeightsGame extends FlameGame {
   void _refreshNearby() {
     final Vector2 playerPosition = _player.position;
 
-    // Books take priority over the instructor.
+    // Books take priority over NPCs.
     for (final Component child in world.children) {
       if (child is CollectibleBook && child.isPlayerInRange(playerPosition)) {
         _setNearby(NearbyTarget.book(child));
@@ -169,9 +174,12 @@ class AcademiaHeightsGame extends FlameGame {
       }
     }
 
-    if (_instructor.isPlayerInRange(playerPosition)) {
-      _setNearby(NearbyTarget.npc(_instructor));
-      return;
+    // Any NPC can be talked to, not just the instructor.
+    for (final NpcComponent npc in _npcs) {
+      if (npc.isPlayerInRange(playerPosition)) {
+        _setNearby(NearbyTarget.npc(npc));
+        return;
+      }
     }
 
     _setNearby(null);

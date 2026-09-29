@@ -1,12 +1,17 @@
+import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../game/tile_map.dart';
 import '../routes.dart';
 import '../state/settings_controller.dart';
+import '../theme/app_logo.dart';
 import '../theme/app_theme.dart';
 
 /// The opening screen: game name, tagline, a loading bar, and a mute button.
-/// When the loading bar fills, it moves on to the main menu.
+/// Moves on to the main menu as soon as the gameplay images are preloaded —
+/// no artificial delay, so entering a game doesn't stutter on first draw but
+/// also doesn't wait around once it's ready.
 class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
 
@@ -14,34 +19,41 @@ class TitleScreen extends StatefulWidget {
   State<TitleScreen> createState() => _TitleScreenState();
 }
 
-class _TitleScreenState extends State<TitleScreen>
-    with SingleTickerProviderStateMixin {
-  // Drives the loading bar. "late" = created in initState, before first use.
-  late final AnimationController _loadingBar;
-
+class _TitleScreenState extends State<TitleScreen> {
   @override
   void initState() {
     super.initState();
-
-    _loadingBar = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    );
-
-    // Go to the main menu once the bar has finished filling.
-    _loadingBar.addStatusListener((status) {
-      if (status == AnimationStatus.completed && mounted) {
-        Navigator.of(context).pushReplacementNamed(Routes.mainMenu);
-      }
-    });
-
-    _loadingBar.forward();
+    _preloadGameplayImages();
   }
 
-  @override
-  void dispose() {
-    _loadingBar.dispose();
-    super.dispose();
+  /// Loads the gameplay sprites into Flame's image cache now, while the
+  /// player is looking at the loading bar, instead of the first time the
+  /// game screen draws them.
+  Future<void> _preloadGameplayImages() async {
+    await Flame.images.loadAll([
+      ...TileMapComponent.allTileImagePaths,
+      'player/boy_down_1.png',
+      'player/boy_down_2.png',
+      'player/boy_up_1.png',
+      'player/boy_up_2.png',
+      'player/boy_left_1.png',
+      'player/boy_left_2.png',
+      'player/boy_right_1.png',
+      'player/boy_right_2.png',
+      'npc/Teacher1.png',
+      'npc/Teacher2.png',
+      'npc/Teacher3.png',
+      'npc/Principal.png',
+      'books/B1.png',
+      'books/B2.png',
+      'books/B3.png',
+      'books/B4.png',
+      'books/B5.png',
+      'books/B6.png',
+    ]);
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed(Routes.mainMenu);
+    }
   }
 
   @override
@@ -51,28 +63,34 @@ class _TitleScreenState extends State<TitleScreen>
     return Scaffold(
       body: Stack(
         children: [
-          Center(
+          // Old project's splash art, filling the screen behind everything.
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/ui/SplashScreen.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Dim the art so the white title text and progress bar stay readable.
+          Positioned.fill(
+            child: Container(color: AppTheme.ink.withValues(alpha: 0.45)),
+          ),
+          const Center(
             child: Padding(
-              padding: const EdgeInsets.all(AppTheme.gapXl),
+              padding: EdgeInsets.all(AppTheme.gapXl),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  AppLogo(iconSize: 96, textColor: AppTheme.parchment),
+                  SizedBox(height: AppTheme.gapS),
                   Text(
-                    'Academia Heights',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
+                    'Study. Explore. Graduate.',
+                    style: TextStyle(color: AppTheme.parchment),
                   ),
-                  const SizedBox(height: AppTheme.gapS),
-                  const Text('Study. Explore. Graduate.'),
-                  const SizedBox(height: AppTheme.gapXl),
-                  AnimatedBuilder(
-                    animation: _loadingBar,
-                    builder: (context, child) {
-                      return LinearProgressIndicator(
-                        value: _loadingBar.value,
-                      );
-                    },
-                  ),
+                  SizedBox(height: AppTheme.gapXl),
+                  // Indeterminate — it just fills while assets load, with no
+                  // fixed length, so it never waits around after they're
+                  // ready.
+                  LinearProgressIndicator(),
                 ],
               ),
             ),

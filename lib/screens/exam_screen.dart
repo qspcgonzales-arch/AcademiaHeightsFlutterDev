@@ -143,57 +143,73 @@ class _ExamScreenState extends State<ExamScreen> {
           title: Text('${examStageLabel(_exam.stage)} Exam'),
           automaticallyImplyLeading: false,
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.gapL),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/ui/QuizBG.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            // Dim the art so the question text stays readable.
+            Positioned.fill(
+              child: Container(color: AppTheme.ink.withValues(alpha: 0.55)),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.gapL),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Question ${_questionIndex + 1} of $total'),
-                    Text('$_secondsLeft s'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Question ${_questionIndex + 1} of $total'),
+                        Text('$_secondsLeft s'),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.gapS),
+                    LinearProgressIndicator(
+                      value: _secondsLeft / _secondsPerQuestion,
+                    ),
+                    const SizedBox(height: AppTheme.gapL),
+                    Text(
+                      question.prompt,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppTheme.gapL),
+                    RadioGroup<int>(
+                      groupValue: _selectedChoice,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedChoice = value;
+                        });
+                      },
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < question.choices.length; i++)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppTheme.gapS,
+                              ),
+                              child: RadioListTile<int>(
+                                title: Text(question.choices[i]),
+                                value: i,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: _selectedChoice == null ? null : _submitAnswer,
+                      child: Text(isLastQuestion ? 'Finish' : 'Next question'),
+                    ),
                   ],
                 ),
-                const SizedBox(height: AppTheme.gapS),
-                LinearProgressIndicator(
-                  value: _secondsLeft / _secondsPerQuestion,
-                ),
-                const SizedBox(height: AppTheme.gapL),
-                Text(
-                  question.prompt,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: AppTheme.gapL),
-                RadioGroup<int>(
-                  groupValue: _selectedChoice,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedChoice = value;
-                    });
-                  },
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < question.choices.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: AppTheme.gapS),
-                          child: RadioListTile<int>(
-                            title: Text(question.choices[i]),
-                            value: i,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: _selectedChoice == null ? null : _submitAnswer,
-                  child: Text(isLastQuestion ? 'Finish' : 'Next question'),
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

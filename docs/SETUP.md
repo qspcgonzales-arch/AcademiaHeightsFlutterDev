@@ -117,15 +117,39 @@ guess a fix that changes behaviour.
 You should land on the Title screen, which fills a loading bar and moves to
 the Main Menu.
 
-### 7. Build the demo APK (only near demo day)
+### 7. Configure release signing and build the demo APK
 
-```bash
-flutter build apk --release
-# output: build/app/outputs/flutter-apk/app-release.apk
+Create an Android upload key in your Windows user folder. `keytool` prompts
+for the keystore password and certificate details in the terminal; keep the
+password private and make a secure backup of the `.jks` file.
+
+```powershell
+keytool -genkey -v -keystore "$env:USERPROFILE\academia-heights-upload.jks" -keyalg RSA -keysize 2048 -validity 10000 -alias academia-heights
 ```
 
-Copy that file to a phone and install it to confirm it works outside the
-emulator.
+Create `android/key.properties` with the values from your key. This file is
+already ignored by Git:
+
+```properties
+storePassword=YOUR_PRIVATE_KEYSTORE_PASSWORD
+keyPassword=YOUR_PRIVATE_KEY_PASSWORD
+keyAlias=academia-heights
+storeFile=C:/Users/YOUR_WINDOWS_USER/academia-heights-upload.jks
+```
+
+Replace the example values locally. Never commit or upload `key.properties`
+or the `.jks` file. Anyone who gets the private key can sign app updates as
+your team, and losing it prevents updates from installing over this app.
+
+Build an ARM64 release APK for current Android phones:
+
+```bash
+flutter build apk --release --target-platform android-arm64
+```
+
+The signed APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
+Install it on a physical phone and verify launch, touch controls, gameplay,
+and saved progress before sharing that APK through Google Drive.
 
 ---
 

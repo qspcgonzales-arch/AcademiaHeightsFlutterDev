@@ -36,6 +36,7 @@ unlinked.ds
 unlinked_spec.ds
 
 # Android related
+**/android/build/
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
 **/android/captures/
@@ -56,3 +57,6 @@ app.*.map.json
 
 # Keep only the imported legacy map needed by the Flutter build.
 /AcademiaHeightsGame(FINALS)2/**
+
+# Reference-only workflow files; never package or commit as app source.
+/files/**

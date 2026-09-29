@@ -9,6 +9,7 @@ import '../game/npc.dart';
 import '../models/exam.dart';
 import '../routes.dart';
 import '../state/game_state.dart';
+import '../theme/app_logo.dart';
 import '../theme/app_theme.dart';
 
 /// Hosts the Flame game and the on-screen HUD. The game is drawn by
@@ -42,10 +43,10 @@ class _GameplayScreenState extends State<GameplayScreen> {
     final GameState state = context.watch<GameState>();
     final profile = state.profile;
 
-    // No run in progress (e.g. after "quit") — show a spinner while the
-    // navigator returns to the menu.
+    // No run in progress (e.g. after "quit") — show the loading icon while
+    // the navigator returns to the menu.
     if (profile == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: _LoadingIcon()));
     }
 
     final AcademiaHeightsGame game = _gameFor(state);
@@ -53,7 +54,12 @@ class _GameplayScreenState extends State<GameplayScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned.fill(child: GameWidget(game: game)),
+          Positioned.fill(
+            child: GameWidget(
+              game: game,
+              loadingBuilder: (context) => const Center(child: _LoadingIcon()),
+            ),
+          ),
 
           // Top-left: name, level, EXP.
           SafeArea(
@@ -105,19 +111,45 @@ class _GameplayScreenState extends State<GameplayScreen> {
                 child: ValueListenableBuilder<NearbyTarget?>(
                   valueListenable: game.nearby,
                   builder: (context, target, child) {
-                    if (target == null) return const SizedBox.shrink();
+                    final bool visible = target != null;
 
-                    String label;
-                    if (target.isNpc) {
-                      label = 'Talk to ${target.npc!.displayName}';
-                    } else {
-                      label = 'Pick up';
+                    String label = '';
+                    IconData icon = Icons.touch_app;
+                    if (target != null) {
+                      label = target.isNpc
+                          ? 'Talk to ${target.npc!.displayName}'
+                          : 'Pick up';
+                      if (target.isNpc) {
+                        icon = Icons.record_voice_over;
+                      } else {
+                        icon = Icons.menu_book;
+                      }
                     }
 
-                    return FilledButton.icon(
-                      onPressed: () => _onInteract(game, state),
-                      icon: const Icon(Icons.touch_app),
-                      label: Text(label),
+                    // Scale + fade the button in/out instead of it just
+                    // snapping into existence.
+                    return AnimatedScale(
+                      scale: visible ? 1 : 0,
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeOutBack,
+                      child: AnimatedOpacity(
+                        opacity: visible ? 1 : 0,
+                        duration: const Duration(milliseconds: 120),
+                        child: IgnorePointer(
+                          ignoring: !visible,
+                          child: IconButton.filled(
+                            tooltip: label,
+                            constraints: const BoxConstraints.tightFor(
+                              width: 48,
+                              height: 48,
+                            ),
+                            padding: EdgeInsets.zero,
+                            onPressed:
+                                visible ? () => _onInteract(game, state) : null,
+                            icon: Icon(icon, size: 22),
+                          ),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -218,6 +250,16 @@ class _GameplayScreenState extends State<GameplayScreen> {
       if (!state.isStagePassed(stage)) return stage;
     }
     return null;
+  }
+}
+
+/// The splash icon shown wherever the game is loading or waiting.
+class _LoadingIcon extends StatelessWidget {
+  const _LoadingIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppLogo(iconSize: 96, showName: false);
   }
 }
 
