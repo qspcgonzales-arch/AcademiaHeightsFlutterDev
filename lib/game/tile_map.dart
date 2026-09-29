@@ -267,16 +267,14 @@ class TileMapComponent extends PositionComponent {
     // margin), instead of all 2,500 every frame — this is what was making
     // the game feel sluggish, especially now that the camera is zoomed in.
     final Rect visible = canvas.getLocalClipBounds();
-    final int firstColumn = (visible.left / tileSize).floor().clamp(
-          0,
-          columns - 1,
-        );
-    final int lastColumn = (visible.right / tileSize).ceil().clamp(
-          0,
-          columns - 1,
-        );
-    final int firstRow = (visible.top / tileSize).floor().clamp(0, rows - 1);
-    final int lastRow = (visible.bottom / tileSize).ceil().clamp(0, rows - 1);
+    final int firstColumn =
+        ((visible.left / tileSize).floor() - 1).clamp(0, columns - 1);
+    final int lastColumn =
+        ((visible.right / tileSize).ceil() + 1).clamp(0, columns - 1);
+    final int firstRow =
+        ((visible.top / tileSize).floor() - 1).clamp(0, rows - 1);
+    final int lastRow =
+        ((visible.bottom / tileSize).ceil() + 1).clamp(0, rows - 1);
 
     for (int row = firstRow; row <= lastRow; row++) {
       for (int column = firstColumn; column <= lastColumn; column++) {

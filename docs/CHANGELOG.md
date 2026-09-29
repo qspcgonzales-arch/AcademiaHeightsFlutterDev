@@ -22,6 +22,8 @@
 
 ## 2026-09-30 - Gameplay polish and release setup
 
+- Widen the gameplay camera view and render a one-tile safety margin around
+  visible map bounds to reduce tightly cropped campus edges.
 - Use a compact 48-by-48 contextual talk or pickup button on the gameplay HUD.
 - Adapt main-menu spacing for short landscape screens and make the New Game
   form scroll when the keyboard reduces available height.

@@ -92,9 +92,9 @@ class AcademiaHeightsGame extends FlameGame {
     // Keep the player at the exact center of the screen. The old map is
     // allowed to move beyond the viewport near its edges.
     camera.viewfinder.anchor = Anchor.center;
-    // Zoomed in closer than 1:1 so the character and nearby tiles read
-    // clearly on a phone screen instead of looking distant.
-    camera.viewfinder.zoom = 2.2;
+    // Show more of the campus at once so map features are not tightly cropped
+    // by the edge of a wide phone viewport.
+    camera.viewfinder.zoom = 1.7;
     camera.follow(_player);
 
     _npcs = [
